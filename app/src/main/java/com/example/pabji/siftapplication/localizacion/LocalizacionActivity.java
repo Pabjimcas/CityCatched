@@ -127,7 +127,7 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
     }
 
 
-    public void pablo2(){
+    public void pablo263(){
 
     }
 }
