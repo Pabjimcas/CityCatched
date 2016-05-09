@@ -1,6 +1,5 @@
 package com.example.pabji.siftapplication.foto;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +23,7 @@ public class TakePhotoFragment extends Fragment {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
-    public static final int MEDIA_TYPE_IMAGE = 7;
+    public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
 
     public TakePhotoFragment() {

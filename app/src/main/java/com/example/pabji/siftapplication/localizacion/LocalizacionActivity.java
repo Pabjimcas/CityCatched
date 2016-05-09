@@ -80,7 +80,7 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
             if (lastLocation.getLatitude() < locationLatitudeCasaConchas + 0.00001 && lastLocation.getLatitude() > locationLatitudeCasaConchas - 0.00001 &&
                     lastLocation.getLongitude() < locationLongitudeCasaConchas + 0.00001 && lastLocation.getLongitude() > locationLongitudeCasaConchas - 0.00001) {
                 tvRango.setText("Estas en el rango guapeton");
-            }else{
+            } else {
                 tvRango.setText("No estas en el rango guapeton");
             }
 
@@ -116,7 +116,7 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
                 if (lastLocation.getLatitude() < locationLatitudeCasaConchas + 0.00001 && lastLocation.getLatitude() > locationLatitudeCasaConchas - 0.00001 &&
                         lastLocation.getLongitude() < locationLongitudeCasaConchas + 0.00001 && lastLocation.getLongitude() > locationLongitudeCasaConchas - 0.00001) {
                     tvRango.setText("Estas en el rango guapeton");
-                }else{
+                } else {
                     tvRango.setText("No estas en el rango guapeton");
 
                 }
@@ -127,8 +127,5 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
     }
 
 
-    public void pablo263(){
-
-    }
 }
 
