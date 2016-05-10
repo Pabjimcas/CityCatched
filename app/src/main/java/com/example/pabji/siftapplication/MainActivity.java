@@ -15,6 +15,9 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 
 import android.media.ThumbnailUtils;
 import android.net.Uri;
@@ -32,6 +35,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
@@ -59,12 +63,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private String lastDetectedObj;
 
     private ObjectRecognizer recognizer;
-    private TextToSpeech synthesizer;
 
     private static final int CAPTURE_IMAGE = 100;
     private static final int TTS_CHECK = 200;
-
-    private boolean isSynthesizerInitialized = false;
 
     private ArrayList<File> imageFiles;
 
@@ -164,13 +165,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         lastDetectedObj = detectedObj;
         detectedObj = recognizer.recognize(mGray);
 
-        if (isSynthesizerInitialized) {
-            if (!detectedObj.equals("-")
-                    && !detectedObj.equals(lastDetectedObj)) {
-                synthesizer.speak(detectedObj, TextToSpeech.QUEUE_ADD, null);
-            }
-        }
-
         handler.post(new EditViewRunnable());
 
         return mRgba;
@@ -181,13 +175,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         public void run() {
             TextView detectedObjTextView = (TextView) findViewById(R.id.detectedObjTextView);
             detectedObjTextView.setText(detectedObj);
-        }
-    }
-
-    private class TTSInitListener implements OnInitListener {
-        @Override
-        public void onInit(int status) {
-            isSynthesizerInitialized = true;
         }
     }
 
@@ -210,6 +197,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         text.setText(file.getName().substring(0,
                 file.getName().lastIndexOf(".")));
         text.setPadding(5, 5, 5, 5);
+
 
         layout.addView(image);
         layout.addView(text);
@@ -275,18 +263,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                         // adjust recognizer
                         recognizer.removeObject(clickedImgIdx);
                         cameraView.enableView();
-
-                        // tell user
-                        if (isSynthesizerInitialized) {
-                            synthesizer.speak(
-                                    "Object "
-                                            + toBeDeteled.getName().substring(
-                                            0,
-                                            toBeDeteled.getName()
-                                                    .lastIndexOf("."))
-                                            + " successfully deleted",
-                                    TextToSpeech.QUEUE_FLUSH, null);
-                        }
 
                         // if database gets empty insert zeroObjects textview
                         if (imageFiles.size() == 0) {
@@ -374,7 +350,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                             } catch (IOException e) {
                                 Toast invalidToast = Toast
                                         .makeText(MainActivity.this, "Invalid name.\nObject was not created", Toast.LENGTH_SHORT);
-                                synthesizer.speak("Casa de las conchas", TextToSpeech.QUEUE_FLUSH, null);
                                 invalidToast.show();
                                 cameraView.enableView();
                             } finally {
@@ -393,22 +368,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // if TTS check
-        if (requestCode == TTS_CHECK) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // success, create the TTS instance
-                synthesizer = new TextToSpeech(this, new TTSInitListener());
-                synthesizer.setLanguage(Locale.US);
-            } else {
-                // missing data, install it
-                Intent installIntent = new Intent();
-                installIntent
-                        .setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
-                synthesizer = new TextToSpeech(this, new TTSInitListener());
-                synthesizer.setLanguage(Locale.US);
-            }
-        }
+
         // if new object has been added to application database
         if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
@@ -430,16 +390,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                     scrollLinearLayout.removeView(zeroObjects);
                 }
                 imageFiles.add(newFile);
+                Mat fullSizeTrainImg = Highgui.imread(newFile.getPath());
+                Mat resizedTrainImg = new Mat();
+                Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
+                recognizer.sendFirebase(resizedTrainImg,46);
+
                 Collections.sort(imageFiles);
                 int newFileIdx = imageFiles.indexOf(newFile);
                 addImageThumbnail(newFile, newFileIdx);
-
-                // tell user
-                if (isSynthesizerInitialized) {
-                    synthesizer.speak("Object " + newImgFilename
-                                    + " successfully created",
-                            TextToSpeech.QUEUE_FLUSH, null);
-                }
 
             } else if (resultCode == RESULT_CANCELED) {
                 super.onActivityResult(requestCode, resultCode, data);

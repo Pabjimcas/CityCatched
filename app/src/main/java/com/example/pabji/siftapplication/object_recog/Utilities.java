@@ -1,5 +1,9 @@
 package com.example.pabji.siftapplication.object_recog;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +20,14 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 public class Utilities {
+
+	public static Bitmap getBitmapImage(File dir){
+
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inSampleSize = 4;
+		Bitmap bp = BitmapFactory.decodeFile(dir.getPath(), options);
+		return bp;
+	}
 	
 	public static ArrayList<File> getJPGFiles(File dir) {
 		File[] files = dir.listFiles(new FilenameFilter() {

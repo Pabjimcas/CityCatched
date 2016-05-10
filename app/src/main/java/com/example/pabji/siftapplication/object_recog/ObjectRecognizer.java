@@ -105,12 +105,10 @@ public class ObjectRecognizer {
 			trainDescriptors.add(new Mat());
 			descriptor.compute(trainImages.get(i), trainKeypoints.get(i),
 					trainDescriptors.get(i));
-			Mat mat = trainDescriptors.get(i);
-			Log.d("PTOP",String.valueOf(mat.rows()));
-			Log.d("PTOP",String.valueOf(mat.cols()));
+			/*Mat mat = trainDescriptors.get(i);
 			byte[] data = new byte[ (int) (mat.total() * mat.channels()) ];
 			mat.get(0,  0, data);
-			mref.child(String.valueOf(i)).setValue(Arrays.toString(data));
+			mref.child(String.valueOf(i)).setValue(Arrays.toString(data));*/
 		}
 
 
@@ -132,6 +130,19 @@ public class ObjectRecognizer {
 			Log.d("PTOP","eNTRA");
 		}*/
 
+	}
+
+	public void sendFirebase (Mat mat,int val){
+		Firebase mref = new Firebase("https://city-catched.firebaseio.com/");
+		MatOfKeyPoint matKeypoints = new MatOfKeyPoint();
+		Mat matDescriptor = new Mat();
+		detector.detect(mat, matKeypoints);
+		trainDescriptors.add(new Mat());
+		descriptor.compute(mat, matKeypoints,matDescriptor);
+		byte[] data = new byte[ (int) (matDescriptor.total() * matDescriptor.channels()) ];
+		mat.get(0,  0, data);
+		mref.child(String.valueOf(val)).setValue(Arrays.toString(data));
+		Log.d("FIREBASE","OK");
 	}
 
 	public void removeObject(int clickedImgIdx) {
