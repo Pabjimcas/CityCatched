@@ -447,6 +447,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
 
                 }
 
+                //Line
+
                 tempFile.delete();
 
                 // apply change to UI
