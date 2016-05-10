@@ -1,5 +1,6 @@
 package com.example.pabji.siftapplication.object_recog;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.firebase.client.DataSnapshot;
@@ -132,7 +133,7 @@ public class ObjectRecognizer {
 
 	}
 
-	public void sendFirebase (Mat mat,int val){
+	public void sendFirebase (Mat mat, Location location, int val){
 		Firebase mref = new Firebase("https://city-catched.firebaseio.com/");
 		MatOfKeyPoint matKeypoints = new MatOfKeyPoint();
 		Mat matDescriptor = new Mat();
@@ -141,7 +142,9 @@ public class ObjectRecognizer {
 		descriptor.compute(mat, matKeypoints,matDescriptor);
 		byte[] data = new byte[ (int) (matDescriptor.total() * matDescriptor.channels()) ];
 		mat.get(0,  0, data);
-		mref.child(String.valueOf(val)).setValue(Arrays.toString(data));
+		mref.child("descriptors").child(String.valueOf(val)).child(String.valueOf(System.currentTimeMillis())).setValue(Arrays.toString(data));
+		/*mref.child(String.valueOf(val)).child("location").child("latitude").setValue(location.getLatitude());
+		mref.child(String.valueOf(val)).child("location").child("longitude").setValue(location.getLongitude());*/
 		Log.d("FIREBASE","OK");
 	}
 

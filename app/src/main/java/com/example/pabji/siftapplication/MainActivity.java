@@ -19,8 +19,12 @@ import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -35,6 +39,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -46,13 +53,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.pabji.siftapplication.localizacion.LocalizacionActivity;
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends Activity implements CvCameraViewListener2 {
+public class MainActivity extends Activity implements CvCameraViewListener2, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private Mat mRgba;
     private Mat mGray;
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_CODE = 1;
 
     private CameraBridgeViewBase cameraView;
     private LinearLayout scrollLinearLayout;
@@ -68,6 +83,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final int TTS_CHECK = 200;
 
     private ArrayList<File> imageFiles;
+    private GoogleApiClient mGoogleApiClient;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -87,12 +103,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             }
         }
     };
+    private Location lastLocation;
 
     @Override
     public void onResume() {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
                 mLoaderCallback);
+        mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
     }
 
     TextView zeroObjects;
@@ -168,6 +187,52 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         handler.post(new EditViewRunnable());
 
         return mRgba;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        lastLocation = null;
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+
+                Log.v(TAG, "Permission is granted");
+                lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            } else {
+                Log.v(TAG, "Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        REQUEST_CODE);
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+
+        /*if (lastLocation != null) {
+            Double locationLatitudeCasaConchas = 40.9628577;
+            Double locationLongitudeCasaConchas = -5.6660739;
+            //tvLocalizacion.setText(lastLocation.getLatitude() + " , " + lastLocation.getLongitude());
+            if (lastLocation.getLatitude() < locationLatitudeCasaConchas + 0.00001 && lastLocation.getLatitude() > locationLatitudeCasaConchas - 0.00001 &&
+                    lastLocation.getLongitude() < locationLongitudeCasaConchas + 0.00001 && lastLocation.getLongitude() > locationLongitudeCasaConchas - 0.00001) {
+                tvRango.setText("Estas en el rango guapeton");
+            } else {
+                tvRango.setText("No estas en el rango guapeton");
+            }
+
+        }*/
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
     private class EditViewRunnable implements Runnable {
@@ -392,8 +457,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 imageFiles.add(newFile);
                 Mat fullSizeTrainImg = Highgui.imread(newFile.getPath());
                 Mat resizedTrainImg = new Mat();
+                Mat imgGray = new Mat();
                 Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
-                recognizer.sendFirebase(resizedTrainImg,46);
+                Imgproc.cvtColor(resizedTrainImg, imgGray, Imgproc.COLOR_BGR2GRAY);
+
+                recognizer.sendFirebase(imgGray,lastLocation,1);
 
                 Collections.sort(imageFiles);
                 int newFileIdx = imageFiles.indexOf(newFile);
