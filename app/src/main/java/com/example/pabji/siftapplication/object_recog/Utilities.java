@@ -3,6 +3,9 @@ package com.example.pabji.siftapplication.object_recog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
+import android.util.Log;
+
+import com.firebase.tubesock.Base64;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -70,8 +73,29 @@ public class Utilities {
 		return fileNames;
 	}
 
+	public static String encodeImage(byte[] imageByteArray) {
+		return Base64.encodeToString(imageByteArray,true);
+		//return Base64.encodeBase64URLSafeString(imageByteArray);
+	}
+
+	public static byte[] decodeImage(String imageDataString) {
+		return Base64.decode(imageDataString);
+		//return Base64.decodeBase64(imageDataString);
+	}
+
 	public static void copyFile(File src, File dst) throws IOException {
 		InputStream inputStream = new FileInputStream(src);
+
+		/*byte imageData[] = new byte[(int) src.length()];
+		inputStream.read(imageData);
+
+		// Converting Image byte array into Base64 String
+		String imageDataString = encodeImage(imageData);
+		Log.d("IMAGE",imageDataString);
+		Log.d("IMAGE-TAMANO",String.valueOf(imageDataString.length()));*/
+
+
+
 		OutputStream outputStream = new FileOutputStream(dst);
 
 		byte[] buf = new byte[1024];

@@ -41,55 +41,9 @@ public class ObjectRecognizer {
 	private int[] numMatchesInImage;
 	private  boolean listo = false;
 
-	public ObjectRecognizer(File trainDir) {
-
-		/*detector = FeatureDetector.create(FeatureDetector.ORB);
-		descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-		matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
-		objectNames = new ArrayList<>();
-		trainDescriptors = new ArrayList<>();
-
-		Firebase mref = new Firebase("https://city-catched.firebaseio.com/");
-
-		mref.addValueEventListener(new ValueEventListener() {
-			@Override
-			public void onDataChange(DataSnapshot dataSnapshot) {
-				int count = 0;
-				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-					String s = postSnapshot.getValue(String.class);
-					s = s.substring(1,s.length()-1).replace(" ","");
-					String[] e = s.split(",");
-					byte[] array = new byte[e.length];
-					for(int i = 0; i< e.length;i++){
-						array[i] = Byte.valueOf(e[i]);
-					}
-					//Log.d("PTOP",Arrays.toString(array));
-					Mat m = new Mat(500, 32, CvType.CV_8UC1);
-					m.put(0, 0, array);
-					trainDescriptors.add(m);
-					if(count == 0) {
-						objectNames.add("Casa de las conchas");
-					}else if(count == 1){
-						objectNames.add("La clerecia");
-					}else{
-						objectNames.add("Pantalla");
-					}
-					count++;
-
-
-				}
-				matcher.add(trainDescriptors);
-				matcher.train();
-				listo = true;
-			}
-
-			@Override
-			public void onCancelled(FirebaseError firebaseError) {
-
-			}
-		});*/
-		Firebase mref = new Firebase("https://city-catched.firebaseio.com/");
-		ArrayList<File> jpgFiles = Utilities.getJPGFiles(trainDir);
+	public void updateFirebase(File dir,int build){
+		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
+		ArrayList<File> jpgFiles = Utilities.getJPGFiles(dir);
 		trainImages = Utilities.getImageMats(jpgFiles);
 		objectNames = Utilities.getFileNames(jpgFiles);
 
@@ -106,30 +60,58 @@ public class ObjectRecognizer {
 			trainDescriptors.add(new Mat());
 			descriptor.compute(trainImages.get(i), trainKeypoints.get(i),
 					trainDescriptors.get(i));
-			/*Mat mat = trainDescriptors.get(i);
+			Mat mat = trainDescriptors.get(i);
 			byte[] data = new byte[ (int) (mat.total() * mat.channels()) ];
 			mat.get(0,  0, data);
-			mref.child(String.valueOf(i)).setValue(Arrays.toString(data));*/
+			mref.child(String.valueOf(build)).child(String.valueOf(i)).setValue(Arrays.toString(data));
 		}
-
-
 
 		matcher.add(trainDescriptors);
 		matcher.train();
-		listo = true;
+	}
 
+	public ObjectRecognizer() {
 
+		detector = FeatureDetector.create(FeatureDetector.ORB);
+		descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+		matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
+		objectNames = new ArrayList<>();
+		trainDescriptors = new ArrayList<>();
 
+		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
 
-		/*List<Mat> lista = matcher.getTrainDescriptors();
+		mref.addValueEventListener(new ValueEventListener() {
+			@Override
+			public void onDataChange(DataSnapshot dataSnapshot) {
+				int count = 0;
+				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
 
-		for(int i = 0; i< lista.size(); i++){
-			Mat mat = lista.get(i);
-			byte[] data = new byte[ (int) (mat.total() * mat.channels()) ];
-			mat.get(0,  0, data);
-			mref.child(String.valueOf(i)).setValue(Arrays.toString(data));
-			Log.d("PTOP","eNTRA");
-		}*/
+					for(DataSnapshot postSnapshot2: postSnapshot.getChildren()){
+						String s = postSnapshot2.getValue(String.class);
+						//byte[] array = Utilities.decodeImage(s);
+						s = s.substring(1,s.length()-1).replace(" ","");
+						String[] e = s.split(",");
+						byte[] array = new byte[e.length];
+						for(int i = 0; i< e.length;i++){
+							array[i] = Byte.valueOf(e[i]);
+						}
+						Mat m = new Mat(500, 32, CvType.CV_8UC1);
+						m.put(0, 0, array);
+						trainDescriptors.add(m);
+						objectNames.add(postSnapshot.getKey());
+					}
+				}
+				matcher.add(trainDescriptors);
+				matcher.train();
+				listo = true;
+
+			}
+
+			@Override
+			public void onCancelled(FirebaseError firebaseError) {
+
+			}
+		});
 
 	}
 
@@ -138,10 +120,11 @@ public class ObjectRecognizer {
 		MatOfKeyPoint matKeypoints = new MatOfKeyPoint();
 		Mat matDescriptor = new Mat();
 		detector.detect(mat, matKeypoints);
-		trainDescriptors.add(new Mat());
 		descriptor.compute(mat, matKeypoints,matDescriptor);
+
 		byte[] data = new byte[ (int) (matDescriptor.total() * matDescriptor.channels()) ];
 		mat.get(0,  0, data);
+		//String s = Utilities.encodeImage(data);
 		mref.child("descriptors").child(String.valueOf(val)).child(String.valueOf(System.currentTimeMillis())).setValue(Arrays.toString(data));
 		/*mref.child(String.valueOf(val)).child("location").child("latitude").setValue(location.getLatitude());
 		mref.child(String.valueOf(val)).child("location").child("longitude").setValue(location.getLongitude());*/
@@ -169,7 +152,7 @@ public class ObjectRecognizer {
 			descriptor.compute(mGray, keypoints, descriptors);
 			return match(keypoints, descriptors, matches, matchingStrategy);
 		}
-		return "Caca de vaca";
+		return "Initialization...";
 
 	}
 
@@ -198,6 +181,7 @@ public class ObjectRecognizer {
 		DMatch bestMatch, secondBestMatch;
 
 			matcher.knnMatch(descriptors, knnMatches, 2);
+
 			for (MatOfDMatch matOfDMatch : knnMatches) {
 				bestMatch = matOfDMatch.toArray()[0];
 				secondBestMatch = matOfDMatch.toArray()[1];
@@ -207,6 +191,7 @@ public class ObjectRecognizer {
 					matches.add(goodMatch);
 				}
 			}
+		Log.d("PTOPI",String.valueOf(matches.size()));
 	}
 
 	// uses the list of matches to count the number of matches to each database

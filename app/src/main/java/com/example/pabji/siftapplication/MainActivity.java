@@ -1,6 +1,7 @@
 package com.example.pabji.siftapplication;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,7 +94,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                     cameraView.enableView();
                     cameraView.setFocusable(true);
 
-                    recognizer = new ObjectRecognizer(getFilesDir());
+                    recognizer = new ObjectRecognizer();
                 }
                 break;
                 default: {
@@ -455,13 +456,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                     scrollLinearLayout.removeView(zeroObjects);
                 }
                 imageFiles.add(newFile);
-                Mat fullSizeTrainImg = Highgui.imread(newFile.getPath());
-                Mat resizedTrainImg = new Mat();
-                Mat imgGray = new Mat();
-                Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
-                Imgproc.cvtColor(resizedTrainImg, imgGray, Imgproc.COLOR_BGR2GRAY);
-
-                recognizer.sendFirebase(imgGray,lastLocation,1);
+                recognizer.updateFirebase(getFilesDir(),1);
 
                 Collections.sort(imageFiles);
                 int newFileIdx = imageFiles.indexOf(newFile);
