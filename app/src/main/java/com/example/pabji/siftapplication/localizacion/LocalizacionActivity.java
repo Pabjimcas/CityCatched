@@ -11,15 +11,19 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.example.pabji.siftapplication.R;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-/**
- * Created by pabji on 09/05/2016.
- */
-public class LocalizacionActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class LocalizacionActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = LocalizacionActivity.class.getSimpleName();
     private static final int REQUEST_CODE = 1;
@@ -27,13 +31,27 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
     private TextView tvLocalizacion;
     private TextView tvRango;
     private GoogleApiClient mGoogleApiClient;
+    private Firebase firebase;
+    private List builds = new ArrayList();
+    private Location lastLocation = null;
+    private boolean dentro = false;
+    private boolean fuera = false;
+    private double la;
+    private double lo;
+    private ArrayList aux = new ArrayList<>();
+    private LocationRequest locationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        //tvLocalizacion = (TextView) findViewById(R.id.tv_localizacion);
-        //tvRango = (TextView) findViewById(R.id.tv_rango);
+        Firebase.setAndroidContext(this);
+
+        setContentView(R.layout.activity_main2);
+
+        tvLocalizacion = (TextView) findViewById(R.id.tv_localizacion);
+        tvRango = (TextView) findViewById(R.id.tv_rango);
+
+        getLocationFirebase();
 
     }
 
@@ -51,8 +69,6 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onConnected(Bundle bundle) {
-
-        Location lastLocation = null;
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED
@@ -72,21 +88,12 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
         }
 
         if (lastLocation != null) {
-            Double locationLatitudeCasaConchas = 40.9628577;
-//            Double locationLatitudeCasaConchas = 40.9754476;
-//            Double locationLongitudeCasaConchas = -5.6682167;
-            Double locationLongitudeCasaConchas = -5.6660739;
             tvLocalizacion.setText(lastLocation.getLatitude() + " , " + lastLocation.getLongitude());
-            if (lastLocation.getLatitude() < locationLatitudeCasaConchas + 0.00001 && lastLocation.getLatitude() > locationLatitudeCasaConchas - 0.00001 &&
-                    lastLocation.getLongitude() < locationLongitudeCasaConchas + 0.00001 && lastLocation.getLongitude() > locationLongitudeCasaConchas - 0.00001) {
-                tvRango.setText("Estas en el rango guapeton");
-            } else {
-                tvRango.setText("No estas en el rango guapeton");
-            }
-
         }
 
+
     }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -107,25 +114,59 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
             Log.v(TAG, "Permission: " + permissions[1] + "was " + grantResults[1]);
             Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (lastLocation != null) {
-                Double locationLatitudeCasaConchas = 40.9628577;
-//                Double locationLatitudeCasaConchas = 40.9754476;
-//                Double locationLongitudeCasaConchas = -5.6682167;
-                Double locationLongitudeCasaConchas = -5.6660739;
                 tvLocalizacion.setText(lastLocation.getLatitude() + " , " + lastLocation.getLongitude());
 
-                if (lastLocation.getLatitude() < locationLatitudeCasaConchas + 0.00001 && lastLocation.getLatitude() > locationLatitudeCasaConchas - 0.00001 &&
-                        lastLocation.getLongitude() < locationLongitudeCasaConchas + 0.00001 && lastLocation.getLongitude() > locationLongitudeCasaConchas - 0.00001) {
-                    tvRango.setText("Estas en el rango guapeton");
-                } else {
-                    tvRango.setText("No estas en el rango guapeton");
-
-                }
             }
         } else {
             finish();
         }
     }
 
+    public void getLocationFirebase() {
+        firebase = new Firebase("https://city-catched.firebaseio.com/buildings");
+        firebase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    System.out.println(postSnapshot.getKey());
+                    String descripcion = postSnapshot.child("description").getValue(String.class);
+                    Double latitude = postSnapshot.child("latitude").getValue(Double.class);
+                    Double longitude = postSnapshot.child("longitude").getValue(Double.class);
+                    String name = postSnapshot.child("name").getValue(String.class);
 
+
+                    if (lastLocation.getLatitude() < latitude + 0.00001 && lastLocation.getLatitude() > latitude - 0.00001 &&
+                            lastLocation.getLongitude() < longitude + 0.00001 && lastLocation.getLongitude() > longitude - 0.00001) {
+                        dentro = true;
+
+                    } else {
+                        fuera = true;
+                    }
+
+                    if (dentro == true) {
+                        tvRango.setText("Estas en el rango");
+                    }
+                    if (fuera == true) {
+                        tvRango.setText("No estas en el rango");
+                    }
+
+
+                }
+
+
+            }
+
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+
+    }
 }
+
+
+
 
