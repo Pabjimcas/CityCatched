@@ -11,7 +11,7 @@
 
     </android.support.v7.widget.RecyclerView>
 
-    <RelativeLayout
+    <LinearLayout
         android:background="@android:color/holo_blue_light"
         android:id="@+id/layout"
         android:layout_alignParentBottom="true"
@@ -22,8 +22,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Recognize"
-            android:layout_centerInParent="true"/>
-    </RelativeLayout>
+            android:layout_centerInParent="true"
+            android:onClick="recognizePhoto"/>
+        <Button
+            android:id="@+id/add_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add"
+
+            android:onClick="addObject"
+            />
+    </LinearLayout>
 
 
 

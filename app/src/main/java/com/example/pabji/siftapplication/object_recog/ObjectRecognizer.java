@@ -5,6 +5,7 @@ import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.pabji.siftapplication.models.Building;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -77,37 +78,42 @@ public class ObjectRecognizer {
 		dir.delete();
 	}
 
-	public ObjectRecognizer(final Context context) {
+	public ObjectRecognizer(final Context context, List<String> buildings) {
 
 		detector = FeatureDetector.create(FeatureDetector.ORB);
 		descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
 		matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
 		objectNames = new ArrayList<>();
 		trainDescriptors = new ArrayList<>();
+		getDataFirebase(context,buildings);
+	};
+
+	private void getDataFirebase(final Context context, final List<String> buildings) {
 		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
 		Log.d("TAG","Estoy aqui");
 		mref.addValueEventListener(new ValueEventListener() {
 			@Override
 			public void onDataChange(DataSnapshot dataSnapshot) {
 				listo = false;
-				int count = 0;
-				map = new HashMap<String,List<String>>();
+				map = new HashMap<>();
 				objectNames.clear();
 				trainDescriptors.clear();
 
 				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
 					List<String> list = new ArrayList<>();
 					Log.d("TAG",String.valueOf(postSnapshot.getChildrenCount()));
-					for(DataSnapshot postSnapshot2: postSnapshot.getChildren()){
-						String s = postSnapshot2.getValue(String.class);
-						byte[] array = Utilities.decodeImage(s);
-						Mat m = new Mat(500, 32, CvType.CV_8UC1);
-						m.put(0, 0, array);
-						trainDescriptors.add(m);
-						objectNames.add(postSnapshot.getKey());
-						list.add(postSnapshot.getKey());
+					if(buildings.contains(postSnapshot.getKey())) {
+						for (DataSnapshot postSnapshot2 : postSnapshot.getChildren()) {
+							String s = postSnapshot2.getValue(String.class);
+							byte[] array = Utilities.decodeImage(s);
+							Mat m = new Mat(500, 32, CvType.CV_8UC1);
+							m.put(0, 0, array);
+							trainDescriptors.add(m);
+							objectNames.add(postSnapshot.getKey());
+							list.add(postSnapshot.getKey());
+						}
+						map.put(postSnapshot.getKey(), list);
 					}
-					map.put(postSnapshot.getKey(),list);
 				}
 				matcher.clear();
 				matcher.add(trainDescriptors);
@@ -121,6 +127,7 @@ public class ObjectRecognizer {
 
 			}
 		});
+
 
 	}
 

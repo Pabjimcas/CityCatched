@@ -3,26 +3,15 @@ package com.example.pabji.siftapplication;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.location.Location;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.provider.MediaStore;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -31,11 +20,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -47,8 +33,6 @@ import com.example.pabji.siftapplication.description.DescriptionActivity;
 import com.example.pabji.siftapplication.helpers.CityDBHelper;
 import com.example.pabji.siftapplication.models.Building;
 import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
-
-import com.example.pabji.siftapplication.models.Building;
 
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
@@ -79,32 +63,20 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 200;
-    private Uri fileUri;
-    public static final int MEDIA_TYPE_IMAGE = 1;
     private File actuallyPhotoFile;
-    private ImageView imageViewPhoto;
     private RecyclerView recyclerView;
-
-
-    private Mat mRgba;
-    private Mat mGray;
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE = 1;
-    private LinearLayout scrollLinearLayout;
-
-    private Handler handler;
 
     private String detectedObj;
-    private String lastDetectedObj;
-
+    private Firebase firebase;
+    private List builds = new ArrayList();
     private static ObjectRecognizer recognizer;
+    public List nearBuilding = new ArrayList();
 
     private static final int CAPTURE_IMAGE = 100;
-    private static final int RECOGNIZE_IMAGE = 300;
-    private static final int TTS_CHECK = 200;
 
-    private ArrayList<File> imageFiles;
     private GoogleApiClient mGoogleApiClient;
 
 
@@ -116,7 +88,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    recognizer = new ObjectRecognizer(MainActivity.this);
+                    getLocationFirebase();
+                    recognizer = new ObjectRecognizer(MainActivity.this,nearBuilding);
                 }
                 break;
                 default: {
@@ -139,36 +112,20 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         mGoogleApiClient.connect();
     }
 
-    TextView zeroObjects;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         setDB();
 
-        setContentView(R.layout.activity_main);
-
         detectedObj = "-";
-
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-        handler = new Handler();
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        List<Building> itemList = new ArrayList<>();
 
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
-        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        List<Building> buildings = CityDBHelper.getBuildings(db);
 
-
-        adapter = new ItemListAdapter(this, itemList);
+        adapter = new ItemListAdapter(this, buildings);
         adapter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -181,25 +138,11 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        Intent checkIntent = new Intent();
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkIntent, TTS_CHECK);
-
-        // prepare textview to insert if database gets empty
-        zeroObjects = new TextView(this);
-        zeroObjects.setText("There are no objects in your database yet."
-                + "\nStart by clicking the \"New Object\" button above");
-        zeroObjects.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT));
-        zeroObjects.setPadding(5, 5, 5, 5);
-
-        imageFiles = Utilities.getJPGFiles(getFilesDir());
+        getLocationFirebase();
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        lastLocation = null;
+    public void onConnected(Bundle bundle) {
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED
@@ -217,7 +160,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
-
     }
 
     @Override
@@ -230,126 +172,25 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     }
 
-    // creates a horizontal linear layout containing the thumbnail of the image
-    // in the given file together with its name
-    // and inserts it in the activity's scrollView
-    private void addImageThumbnail(File file, int index) {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageView image = new ImageView(this);
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = 4;
-        Bitmap thumbnail = ThumbnailUtils.extractThumbnail(
-                BitmapFactory.decodeFile(file.getPath(), options), 64, 64);
-        image.setImageBitmap(thumbnail);
-        image.setPadding(5, 5, 5, 5);
-
-        TextView text = new TextView(this);
-        text.setText(file.getName().substring(0,
-                file.getName().lastIndexOf(".")));
-        text.setPadding(5, 5, 5, 5);
-
-        layout.addView(image);
-        layout.addView(text);
-        layout.setOnClickListener(viewObject());
-
-        if (index != -1) {
-            scrollLinearLayout.addView(layout, index);
+    @SuppressWarnings("MissingPermission")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
+            Log.v(TAG, "Permission: " + permissions[1] + "was " + grantResults[1]);
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         } else {
-            scrollLinearLayout.addView(layout);
+            finish();
         }
     }
 
-    int clickedImgIdx;
 
-    // creates a dialog to show a larger image of the clicked object
-    View.OnClickListener viewObject() {
-        return new View.OnClickListener() {
-            public void onClick(View view) {
-                clickedImgIdx = scrollLinearLayout.indexOfChild(view);
-                File imageFile = imageFiles.get(clickedImgIdx);
-
-                final Dialog imageDialog = new Dialog(MainActivity.this);
-                imageDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-
-                LinearLayout dialogLayout = new LinearLayout(MainActivity.this);
-                dialogLayout.setLayoutParams(new LayoutParams(
-                        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-                dialogLayout.setOrientation(LinearLayout.VERTICAL);
-                imageDialog.addContentView(dialogLayout, new LayoutParams(
-                        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
-                ImageView fullSizeImage = new ImageView(MainActivity.this);
-                fullSizeImage.setLayoutParams(new LayoutParams(
-                        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 2;
-                Bitmap fullSizeBM = BitmapFactory.decodeFile(
-                        imageFile.getPath(), options);
-                fullSizeImage.setImageBitmap(fullSizeBM);
-                fullSizeImage.setAdjustViewBounds(true);
-                dialogLayout.addView(fullSizeImage);
-
-                LinearLayout buttonsLayout = new LinearLayout(MainActivity.this);
-                buttonsLayout.setLayoutParams(new LayoutParams(
-                        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-                buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-                Button deleteBtn = new Button(MainActivity.this);
-                deleteBtn.setText("Delete");
-                deleteBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        imageDialog.dismiss();
-                        // delete file
-                        File toBeDeteled = imageFiles.get(clickedImgIdx);
-                        toBeDeteled.delete();
-
-                        // adjust UI
-                        imageFiles.remove(clickedImgIdx);
-                        scrollLinearLayout.removeViewAt(clickedImgIdx);
-
-                        // adjust recognizer
-                        recognizer.removeObject(clickedImgIdx);
-
-                        // if database gets empty insert zeroObjects textview
-                        if (imageFiles.size() == 0) {
-                            scrollLinearLayout.addView(zeroObjects);
-                        }
-                    }
-                });
-                buttonsLayout.addView(deleteBtn);
-
-                Button cancelBtn = new Button(MainActivity.this);
-                cancelBtn.setText("Cancel");
-                cancelBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        imageDialog.dismiss();
-                    }
-                });
-
-                buttonsLayout.addView(cancelBtn);
-                dialogLayout.addView(buttonsLayout);
-
-                imageDialog.show();
-
-            }
-        };
-    }
-
-    private String newImgFilename;
-    private static File tempDir = Environment
-            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-
-    // pops up a dialog where user enters the name of the new object and
-    // continues to capture its image using a camera
     public void recognizePhoto(View view) {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                doPhotoWithCamera();
+                doPhotoWithCamera(CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
             }
         });
 
@@ -371,7 +212,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 dialog.cancel();
-                                //cameraView.enableView();
                             }
                         });
 
@@ -408,7 +248,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                     @Override
                     public void onClick(View view) {
                         dialog.dismiss();
-                        doPhotoWithCamera2();
+                        doPhotoWithCamera(CAPTURE_IMAGE);
                     }
                 });
             }
@@ -432,6 +272,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 mref.child(detectedObj).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d("TAG",dataSnapshot.getKey());
                         String name = dataSnapshot.child("name").getValue(String.class);
                         String description = dataSnapshot.child("description").getValue(String.class);
                         String url_image = dataSnapshot.child("url_image").getValue(String.class);
@@ -480,7 +321,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }
         }
     }
-    private void doPhotoWithCamera(){
+    private void doPhotoWithCamera(int code){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         Uri fileUri = null; // create a file to save the image
@@ -493,30 +334,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         if(fileUri!=null) {
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-            // start the image capture Intent
-            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-        }
-        else{
-            Log.d(TAG, "file URI null");
-        }
-    }
-    private void doPhotoWithCamera2(){
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        Uri fileUri = null; // create a file to save the image
-        try {
-            fileUri = getOutputMediaFileUri();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Log.d(TAG, "doPhotoWithCamera2  " + fileUri.getEncodedPath());
-
-        if(fileUri!=null) {
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-            // start the image capture Intent
-            startActivityForResult(intent, CAPTURE_IMAGE);
+            startActivityForResult(intent, code);
         }
         else{
             Log.d(TAG, "file URI null");
@@ -524,7 +342,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     private  Uri getOutputMediaFileUri() throws IOException {
-        //  Log.d(TAG, "getOutPutMediFileUri    " + createFile().getAbsolutePath());
         return Uri.fromFile(createFile());
     }
 
@@ -537,38 +354,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         return tempFile;
     }
 
-    //Change dimension of the image
-    private void setPic(Bitmap immutableBitmap){
-        // Get the dimensions of the View
-        int targetW = imageViewPhoto.getWidth();
-        int targetH = imageViewPhoto.getHeight();
-
-        Bitmap output = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-        Matrix m = new Matrix();
-        m.setScale((float) targetW / immutableBitmap.getWidth(), (float) targetH / immutableBitmap.getHeight());
-        canvas.drawBitmap(immutableBitmap, m, new Paint());
-        Log.d(TAG, "Mutableeeeeeee");
-        imageViewPhoto.setImageBitmap(output);
-
-    }
-
-    //For SQLite
-    private ArrayList<Building> getBuildingsFromSQLite(){
-
-
-        ArrayList<Building> buildings = CityDBHelper.getBuildings(db);
-
-        //Quitarlo despues del debug
-        if(!buildings.isEmpty()) {
-            Log.d(TAG, "costume: " + buildings.get(0).getName());
-        }
-        else{
-            Log.d(TAG, "vacia");
-        }
-
-        return buildings;
-    }
 
     private void saveBuildingToSQLite(String name, String description, String url_image) {
 
@@ -589,6 +374,29 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             db = cityDB.getWritableDatabase();
         }
+    }
+
+    public void getLocationFirebase() {
+        firebase = new Firebase("https://city-catched.firebaseio.com/buildings");
+        firebase.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Double latitude = postSnapshot.child("latitude").getValue(Double.class);
+                    Double longitude = postSnapshot.child("longitude").getValue(Double.class);
+                    if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
+                            lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
+                        nearBuilding.add(postSnapshot.getKey());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
 }
