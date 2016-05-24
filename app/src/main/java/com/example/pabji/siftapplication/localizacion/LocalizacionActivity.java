@@ -1,8 +1,10 @@
 package com.example.pabji.siftapplication.localizacion;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.example.pabji.siftapplication.R;
+import com.example.pabji.siftapplication.models.Building;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -40,6 +43,10 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
     private double lo;
     private ArrayList aux = new ArrayList<>();
     private LocationRequest locationRequest;
+    private boolean inside;
+    public List nearBuilding = new ArrayList();
+    private String n = "";
+    private boolean outside;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +57,7 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
 
         tvLocalizacion = (TextView) findViewById(R.id.tv_localizacion);
         tvRango = (TextView) findViewById(R.id.tv_rango);
-
         getLocationFirebase();
-
     }
 
     @Override
@@ -90,8 +95,6 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
         if (lastLocation != null) {
             tvLocalizacion.setText(lastLocation.getLatitude() + " , " + lastLocation.getLongitude());
         }
-
-
     }
 
 
@@ -115,7 +118,6 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
             Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (lastLocation != null) {
                 tvLocalizacion.setText(lastLocation.getLatitude() + " , " + lastLocation.getLongitude());
-
             }
         } else {
             finish();
@@ -125,45 +127,46 @@ public class LocalizacionActivity extends AppCompatActivity implements GoogleApi
     public void getLocationFirebase() {
         firebase = new Firebase("https://city-catched.firebaseio.com/buildings");
         firebase.addValueEventListener(new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     System.out.println(postSnapshot.getKey());
-                    String descripcion = postSnapshot.child("description").getValue(String.class);
+                    String descripcion = postSnapshot.child("url_description").getValue(String.class);
                     Double latitude = postSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = postSnapshot.child("longitude").getValue(Double.class);
                     String name = postSnapshot.child("name").getValue(String.class);
+                    String url_image = postSnapshot.child("url_image").getValue(String.class);
+                    Building build = new Building(descripcion, name, latitude, longitude, url_image);
+                    builds.add(build);
 
-
-                    if (lastLocation.getLatitude() < latitude + 0.00001 && lastLocation.getLatitude() > latitude - 0.00001 &&
-                            lastLocation.getLongitude() < longitude + 0.00001 && lastLocation.getLongitude() > longitude - 0.00001) {
-                        dentro = true;
+                    if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
+                            lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
+                        inside = true;
+                        nearBuilding.add(build);
+                        n = n + " " + build.getName();
 
                     } else {
-                        fuera = true;
+                        outside = true;
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:" + lastLocation.getLatitude() + "," + lastLocation.getLongitude() + "?q=search/monumentos+de+salamanca"));
+                        startActivity(intent);
                     }
-
-                    if (dentro == true) {
-                        tvRango.setText("Estas en el rango");
-                    }
-                    if (fuera == true) {
-                        tvRango.setText("No estas en el rango");
-                    }
-
-
                 }
 
+                if (nearBuilding.size() > 0) {
+                    tvRango.setText("Estas en el rango de" + n);
+                    inside = false;
 
+                } else {
+                    tvRango.setText("nooo Estas en el rango");
+                }
             }
-
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
 
             }
         });
-
-
     }
 }
 

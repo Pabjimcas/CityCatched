@@ -18,11 +18,11 @@ public class WebviewFragment extends Fragment {
 
 
     public static WebviewFragment newInstance(String name) {
-        WebviewFragment empresaWebFragment = new WebviewFragment();
+        WebviewFragment webviewFragment = new WebviewFragment();
         Bundle args = new Bundle();
-        args.putString("url", name);
-        empresaWebFragment.setArguments(args);
-        return empresaWebFragment;
+        args.putString("description", name);
+        webviewFragment.setArguments(args);
+        return webviewFragment;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class WebviewFragment extends Fragment {
         String url = "";
 
         if (getArguments() != null) {
-            url = (String) getArguments().get("url");
+            url = (String) getArguments().get("description");
         }
         setWeb(view, url);
         return view;

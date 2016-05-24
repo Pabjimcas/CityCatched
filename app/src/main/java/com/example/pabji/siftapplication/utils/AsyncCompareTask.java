@@ -41,10 +41,8 @@ public class AsyncCompareTask extends AsyncTask<Void, Void, Void> {
 
     //Constants
     private static final String TAG = "EndaReco " + AsyncCompareTask.class.toString();
-
     //Attributes
     private Context context;
-
 
     private Bitmap bmpObjToRecognize, bmpScene, bmpMatchedScene;
     private double minDistance, maxDistance;

@@ -1,10 +1,9 @@
 package com.example.pabji.siftapplication.description;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import com.example.pabji.siftapplication.R;
-import com.example.pabji.siftapplication.description.WebviewFragment;
 
 public class DescriptionActivity extends AppCompatActivity {
 
@@ -14,7 +13,7 @@ public class DescriptionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_description);
 
         if (savedInstanceState == null) {
-            WebviewFragment webFragmentFragment = WebviewFragment.newInstance((String) getIntent().getExtras().get("url"));
+            WebviewFragment webFragmentFragment = WebviewFragment.newInstance((String) getIntent().getExtras().get("description"));
             getFragmentManager().beginTransaction().add(android.R.id.content, webFragmentFragment).commit();
         }
     }

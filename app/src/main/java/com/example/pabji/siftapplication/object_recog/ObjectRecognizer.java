@@ -10,13 +10,6 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
@@ -25,6 +18,13 @@ import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ObjectRecognizer {
 
@@ -95,7 +95,6 @@ public class ObjectRecognizer {
 				objectNames.clear();
 				trainDescriptors.clear();
 
-
 				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
 					List<String> list = new ArrayList<>();
 					Log.d("TAG",String.valueOf(postSnapshot.getChildrenCount()));
@@ -115,7 +114,6 @@ public class ObjectRecognizer {
 				matcher.train();
 				Toast.makeText(context,String.valueOf(matcher.getTrainDescriptors().size()),Toast.LENGTH_SHORT).show();
 				listo = true;
-
 			}
 
 			@Override
@@ -145,10 +143,7 @@ public class ObjectRecognizer {
 
 		byte[] data = new byte[ (int) (matDescriptor.total() * matDescriptor.channels()) ];
 		mat.get(0,  0, data);
-		//String s = Utilities.encodeImage(data);
 		mref.child("descriptors").child(String.valueOf(val)).child(String.valueOf(System.currentTimeMillis())).setValue(Arrays.toString(data));
-		/*mref.child(String.valueOf(val)).child("location").child("latitude").setValue(location.getLatitude());
-		mref.child(String.valueOf(val)).child("location").child("longitude").setValue(location.getLongitude());*/
 		Log.d("FIREBASE","OK");
 	}
 

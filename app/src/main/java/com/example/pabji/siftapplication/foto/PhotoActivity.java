@@ -1,17 +1,15 @@
 package com.example.pabji.siftapplication.foto;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.media.Image;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -30,7 +28,6 @@ public class PhotoActivity extends AppCompatActivity {
     public static final int MEDIA_TYPE_IMAGE = 1;
     private File actuallyPhotoFile;
     private ImageView imageViewPhoto;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +79,6 @@ public class PhotoActivity extends AppCompatActivity {
         int targetW = imageViewPhoto.getWidth();
         int targetH = imageViewPhoto.getHeight();
 
-
         Bitmap output = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
         Matrix m = new Matrix();
@@ -101,13 +97,7 @@ public class PhotoActivity extends AppCompatActivity {
             Log.d(TAG, "resultCode del captureimage    "+ resultCode);
             if (resultCode == RESULT_OK) {
                 // Image captured and saved to fileUri specified in the Intent
-               /* if(data!=null) {
-                    Log.d(TAG, "Image saved to:\n" + data.getData());
-                    Bundle extras = data.getExtras();
-                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    imageViewPhoto.setImageBitmap(imageBitmap);
-                }
-*/
+
                 Bitmap imageBitmap = BitmapFactory.decodeFile(actuallyPhotoFile.getPath());
                 //imageViewPhoto.setImageBitmap(imageBitmap);
                 setPic(imageBitmap);

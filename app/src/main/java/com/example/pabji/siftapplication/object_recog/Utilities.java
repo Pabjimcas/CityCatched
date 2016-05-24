@@ -2,10 +2,13 @@ package com.example.pabji.siftapplication.object_recog;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.ThumbnailUtils;
-import android.util.Log;
 
 import com.firebase.tubesock.Base64;
+
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,15 +20,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
-import org.opencv.imgproc.Imgproc;
-
 public class Utilities {
 
 	public static Bitmap getBitmapImage(File dir){
-
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inSampleSize = 4;
 		Bitmap bp = BitmapFactory.decodeFile(dir.getPath(), options);
@@ -85,16 +82,6 @@ public class Utilities {
 
 	public static void copyFile(File src, File dst) throws IOException {
 		InputStream inputStream = new FileInputStream(src);
-
-		/*byte imageData[] = new byte[(int) src.length()];
-		inputStream.read(imageData);
-
-		// Converting Image byte array into Base64 String
-		String imageDataString = encodeImage(imageData);
-		Log.d("IMAGE",imageDataString);
-		Log.d("IMAGE-TAMANO",String.valueOf(imageDataString.length()));*/
-
-
 
 		OutputStream outputStream = new FileOutputStream(dst);
 

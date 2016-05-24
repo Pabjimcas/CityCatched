@@ -9,13 +9,14 @@ public class Building {
     String name;
     Double latitude;
     Double longitude;
+    String url_image;
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDescription(String url_description) {
+        this.description = url_description;
     }
 
     public String getName() {
@@ -42,10 +43,19 @@ public class Building {
         this.longitude = longitude;
     }
 
-    public Building(String description, String name, Double latitude, Double longitude) {
+    public String getUrl_image() {
+        return url_image;
+    }
+
+    public void setUrl_image(String url_image) {
+        this.url_image = url_image;
+    }
+
+    public Building(String description, String name, Double latitude, Double longitude, String url_image) {
         this.description = description;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.url_image = url_image;
     }
 }
