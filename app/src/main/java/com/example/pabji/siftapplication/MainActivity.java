@@ -120,7 +120,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                     //cameraView.enableView();
                     //cameraView.setFocusable(true);
                     recognizer = new ObjectRecognizer(MainActivity.this);
-
                 }
                 break;
                 default: {

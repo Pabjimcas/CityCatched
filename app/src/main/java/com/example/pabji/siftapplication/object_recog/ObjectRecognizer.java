@@ -84,7 +84,6 @@ public class ObjectRecognizer {
 		matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
 		objectNames = new ArrayList<>();
 		trainDescriptors = new ArrayList<>();
-
 		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
 		Log.d("TAG","Estoy aqui");
 		mref.addValueEventListener(new ValueEventListener() {
@@ -103,12 +102,6 @@ public class ObjectRecognizer {
 					for(DataSnapshot postSnapshot2: postSnapshot.getChildren()){
 						String s = postSnapshot2.getValue(String.class);
 						byte[] array = Utilities.decodeImage(s);
-						/*s = s.substring(1,s.length()-1).replace(" ","");
-						String[] e = s.split(",");
-						byte[] array = new byte[e.length];
-						for(int i = 0; i< e.length;i++){
-							array[i] = Byte.valueOf(e[i]);
-						}*/
 						Mat m = new Mat(500, 32, CvType.CV_8UC1);
 						m.put(0, 0, array);
 						trainDescriptors.add(m);
