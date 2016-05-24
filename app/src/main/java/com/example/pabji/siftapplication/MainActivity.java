@@ -60,6 +60,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.pabji.siftapplication.description.DescriptionActivity;
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
 import com.firebase.client.DataSnapshot;
@@ -182,40 +183,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }
 
-    /*@Override
-    public void onPause() {
-        super.onPause();
-        if (cameraView != null)
-            cameraView.disableView();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (cameraView != null)
-            cameraView.disableView();
-    }
-
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-    }
-
-
-    @Override
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        /*mGray = inputFrame.gray();
-        lastDetectedObj = detectedObj;
-        detectedObj = recognizer.recognize(mGray);
-
-        handler.post(new EditViewRunnable());
-
-        return mRgba;
-    }*/
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -517,11 +484,19 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
                 detectedObj = recognizer.recognize(resizedTrainImg);
                 Firebase mref = new Firebase("https://city-catched.firebaseio.com/buildings");
-                mref.child(detectedObj).child("name").addValueEventListener(new ValueEventListener() {
+                mref.child(detectedObj).child("description").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        String s = dataSnapshot.getValue(String.class);
-                        Toast.makeText(MainActivity.this,s,Toast.LENGTH_SHORT).show();
+                        String url = dataSnapshot.getValue(String.class);
+                        if(url == null){
+                            Toast.makeText(MainActivity.this,"Intentelo de nuevo", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            Intent intent = new Intent();
+                            intent.setClass(MainActivity.this, DescriptionActivity.class);
+                            intent.putExtra("url",url);
+                            startActivity(intent);
+                        }
                     }
 
                     @Override
