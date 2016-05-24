@@ -11,7 +11,6 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -19,8 +18,9 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
-        <activity android:name=".MainActivity"
-            android:screenOrientation="landscape">
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,8 +29,9 @@
         </activity>
         <activity android:name=".foto.PhotoActivity" >
         </activity>
-        <activity android:name=".description.DescriptionActivity"
-            android:label="Descripcion">
+        <activity
+            android:name=".description.DescriptionActivity"
+            android:label="Descripcion" >
         </activity>
     </application>
 

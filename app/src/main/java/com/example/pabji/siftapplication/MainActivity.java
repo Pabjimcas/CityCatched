@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -38,6 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.pabji.siftapplication.description.DescriptionActivity;
+import com.example.pabji.siftapplication.helpers.CityDBHelper;
+import com.example.pabji.siftapplication.models.Building;
+import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
 import com.firebase.client.DataSnapshot;
@@ -92,6 +96,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private ArrayList<File> imageFiles;
     private GoogleApiClient mGoogleApiClient;
 
+
+    //For SQLITe
+    private SQLiteDatabase db;
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -124,6 +132,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setDB();
 
         setContentView(R.layout.activity_main);
         scrollLinearLayout = (LinearLayout) findViewById(R.id.scrollLinearLayout);
@@ -388,14 +398,16 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
                 detectedObj = recognizer.recognize(resizedTrainImg);
                 Firebase mref = new Firebase("https://city-catched.firebaseio.com/buildings");
-                mref.child(detectedObj).child("description").addValueEventListener(new ValueEventListener() {
+                mref.child(detectedObj).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        String description = dataSnapshot.getValue(String.class);
-                        if(description == null){
-                            Toast.makeText(MainActivity.this,"Intentelo de nuevo", Toast.LENGTH_SHORT).show();
-                        }
-                        else{
+                        String name = dataSnapshot.child("name").getValue(String.class);
+                        String description = dataSnapshot.child("description").getValue(String.class);
+                        String url_image = dataSnapshot.child("url_image").getValue(String.class);
+                        if (description == null && name == null && url_image == null) {
+                            Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
+                        } else {
+                            saveBuildingToSQLite(name,description,url_image);
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, DescriptionActivity.class);
                             intent.putExtra("description", description);
@@ -437,8 +449,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }
         }
     }
-
-
     private void doPhotoWithCamera(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -510,6 +520,44 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         Log.d(TAG, "Mutableeeeeeee");
         imageViewPhoto.setImageBitmap(output);
 
+    }
+
+    //For SQLite
+    private ArrayList<Building> getBuildingsFromSQLite(){
+
+
+        ArrayList<Building> buildings = CityDBHelper.getBuildings(db);
+
+        //Quitarlo despues del debug
+        if(!buildings.isEmpty()) {
+            Log.d(TAG, "costume: " + buildings.get(0).getName());
+        }
+        else{
+            Log.d(TAG, "vacia");
+        }
+
+        return buildings;
+    }
+
+    private void saveBuildingToSQLite(String name, String description, String url_image) {
+
+        long rows = CityDBHelper.insertBuilding(db,name,description,url_image);
+
+        //Quitarlo despues del debug
+        if(rows>0){
+            Log.d(TAG, "ha habido inserciones");
+        }
+        else{
+            Log.d(TAG, "error insertando posiblemente");
+        }
+
+    }
+    private void setDB(){
+        if(db==null){
+            CitySQLiteOpenHelper cityDB = CitySQLiteOpenHelper.getInstance(this, CitySQLiteOpenHelper.DATABASE_NAME, null, CitySQLiteOpenHelper.DATABASE_VERSION);
+
+            db = cityDB.getWritableDatabase();
+        }
     }
 
 }
