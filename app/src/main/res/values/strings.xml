@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">SiftApplication</string>
     <string name="action_settings">Settings</string>
+    <string name="casa_de_las_conchas">Casa de las conchas</string>
+    <string name="la_clerec_a">La Clerecía</string>
+    <string name="universidad_pontificia">Universidad Pontificia</string>
+    <string name="catedral">Catedral</string>
+    <string name="localizacion">Localizacion</string>
+    <string name="iglesia_de_san_marcos">Iglesia de San Marcos</string>
 </resources>

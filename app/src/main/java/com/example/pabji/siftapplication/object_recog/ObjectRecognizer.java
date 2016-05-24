@@ -1,7 +1,9 @@
 package com.example.pabji.siftapplication.object_recog;
 
+import android.content.Context;
 import android.location.Location;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -11,6 +13,7 @@ import com.firebase.client.ValueEventListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,8 +43,9 @@ public class ObjectRecognizer {
 	private int matchIndex;
 	private int[] numMatchesInImage;
 	private  boolean listo = false;
+	private HashMap<String, List<String>> map;
 
-	public void updateFirebase(File dir,int build){
+	public void updateFirebase(File dir){
 		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
 		ArrayList<File> jpgFiles = Utilities.getJPGFiles(dir);
 		trainImages = Utilities.getImageMats(jpgFiles);
@@ -55,22 +59,25 @@ public class ObjectRecognizer {
 		trainDescriptors = new ArrayList<Mat>();
 
 		for (int i = 0; i < trainImages.size(); i++) {
+			String build = objectNames.get(i);
 			trainKeypoints.add(new MatOfKeyPoint());
 			detector.detect(trainImages.get(i), trainKeypoints.get(i));
 			trainDescriptors.add(new Mat());
 			descriptor.compute(trainImages.get(i), trainKeypoints.get(i),
-					trainDescriptors.get(i));
+						trainDescriptors.get(i));
 			Mat mat = trainDescriptors.get(i);
-			byte[] data = new byte[ (int) (mat.total() * mat.channels()) ];
-			mat.get(0,  0, data);
-			mref.child(String.valueOf(build)).child(String.valueOf(i)).setValue(Arrays.toString(data));
+			byte[] data = new byte[(int) (mat.total() * mat.channels())];
+			mat.get(0, 0, data);
+
+			mref.child(build).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data));
 		}
 
 		matcher.add(trainDescriptors);
 		matcher.train();
+		dir.delete();
 	}
 
-	public ObjectRecognizer() {
+	public ObjectRecognizer(final Context context) {
 
 		detector = FeatureDetector.create(FeatureDetector.ORB);
 		descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
@@ -79,30 +86,41 @@ public class ObjectRecognizer {
 		trainDescriptors = new ArrayList<>();
 
 		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
-
+		Log.d("TAG","Estoy aqui");
 		mref.addValueEventListener(new ValueEventListener() {
 			@Override
 			public void onDataChange(DataSnapshot dataSnapshot) {
+				listo = false;
 				int count = 0;
-				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+				map = new HashMap<String,List<String>>();
+				objectNames.clear();
+				trainDescriptors.clear();
 
+
+				for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+					List<String> list = new ArrayList<>();
+					Log.d("TAG",String.valueOf(postSnapshot.getChildrenCount()));
 					for(DataSnapshot postSnapshot2: postSnapshot.getChildren()){
 						String s = postSnapshot2.getValue(String.class);
-						//byte[] array = Utilities.decodeImage(s);
-						s = s.substring(1,s.length()-1).replace(" ","");
+						byte[] array = Utilities.decodeImage(s);
+						/*s = s.substring(1,s.length()-1).replace(" ","");
 						String[] e = s.split(",");
 						byte[] array = new byte[e.length];
 						for(int i = 0; i< e.length;i++){
 							array[i] = Byte.valueOf(e[i]);
-						}
+						}*/
 						Mat m = new Mat(500, 32, CvType.CV_8UC1);
 						m.put(0, 0, array);
 						trainDescriptors.add(m);
 						objectNames.add(postSnapshot.getKey());
+						list.add(postSnapshot.getKey());
 					}
+					map.put(postSnapshot.getKey(),list);
 				}
+				matcher.clear();
 				matcher.add(trainDescriptors);
 				matcher.train();
+				Toast.makeText(context,String.valueOf(matcher.getTrainDescriptors().size()),Toast.LENGTH_SHORT).show();
 				listo = true;
 
 			}
@@ -113,6 +131,16 @@ public class ObjectRecognizer {
 			}
 		});
 
+	}
+
+	public Mat getDescriptorsImage(Mat image){
+		MatOfKeyPoint keypoints = new MatOfKeyPoint();
+		Mat descriptors = new Mat();
+		List<MatOfDMatch> matches = new LinkedList<MatOfDMatch>();
+
+		detector.detect(image, keypoints);
+		descriptor.compute(image, keypoints, descriptors);
+		return descriptors;
 	}
 
 	public void sendFirebase (Mat mat, Location location, int val){

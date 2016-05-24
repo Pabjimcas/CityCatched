@@ -1,12 +1,13 @@
 package com.example.pabji.siftapplication;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Locale;
+import java.util.Date;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -14,14 +15,18 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.hardware.Camera;
 import android.location.Location;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
@@ -39,7 +44,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -49,20 +53,31 @@ import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.pabji.siftapplication.localizacion.LocalizacionActivity;
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends Activity implements CvCameraViewListener2, GoogleApiClient.ConnectionCallbacks,
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 200;
+    private Uri fileUri;
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    private File actuallyPhotoFile;
+    private ImageView imageViewPhoto;
 
     private Mat mRgba;
     private Mat mGray;
@@ -70,7 +85,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE = 1;
 
-    private CameraBridgeViewBase cameraView;
+    //private CameraBridgeViewBase cameraView;
     private LinearLayout scrollLinearLayout;
 
     private Handler handler;
@@ -78,23 +93,34 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
     private String detectedObj;
     private String lastDetectedObj;
 
-    private ObjectRecognizer recognizer;
+    private static ObjectRecognizer recognizer;
 
     private static final int CAPTURE_IMAGE = 100;
+    private static final int RECOGNIZE_IMAGE = 300;
     private static final int TTS_CHECK = 200;
 
     private ArrayList<File> imageFiles;
     private GoogleApiClient mGoogleApiClient;
+
+    /*static {
+        if(!OpenCVLoader.initDebug()){
+            Log.d("TAG","Not loaded");
+        }else{
+            Log.d("TAG","Loaded");
+            recognizer = new ObjectRecognizer();
+        }
+    }*/
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    cameraView.enableView();
-                    cameraView.setFocusable(true);
+                    //cameraView.enableView();
+                    //cameraView.setFocusable(true);
+                    recognizer = new ObjectRecognizer(MainActivity.this);
 
-                    recognizer = new ObjectRecognizer();
                 }
                 break;
                 default: {
@@ -105,12 +131,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
         }
     };
     private Location lastLocation;
+    private RadioGroup radioGroup;
+    private int idBuild;
 
     @Override
     public void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
-                mLoaderCallback);
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_11, MainActivity.this, mLoaderCallback);
         mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
         mGoogleApiClient.connect();
     }
@@ -120,6 +147,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         scrollLinearLayout = (LinearLayout) findViewById(R.id.scrollLinearLayout);
 
@@ -129,9 +157,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
 
         handler = new Handler();
 
-        cameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
-        cameraView.setVisibility(View.VISIBLE);
-        cameraView.setCvCameraViewListener(this);
+        //cameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
+        //cameraView.setVisibility(View.VISIBLE);
+        //cameraView.setCvCameraViewListener(this);
 
         Intent checkIntent = new Intent();
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -155,7 +183,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
         }
     }
 
-    @Override
+    /*@Override
     public void onPause() {
         super.onPause();
         if (cameraView != null)
@@ -181,14 +209,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
     @Override
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
+        /*mGray = inputFrame.gray();
         lastDetectedObj = detectedObj;
         detectedObj = recognizer.recognize(mGray);
 
         handler.post(new EditViewRunnable());
 
         return mRgba;
-    }
+    }*/
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -236,13 +264,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
 
     }
 
-    private class EditViewRunnable implements Runnable {
+    /*private class EditViewRunnable implements Runnable {
         @Override
         public void run() {
             TextView detectedObjTextView = (TextView) findViewById(R.id.detectedObjTextView);
             detectedObjTextView.setText(detectedObj);
         }
-    }
+    }*/
 
     // creates a horizontal linear layout containing the thumbnail of the image
     // in the given file together with its name
@@ -316,7 +344,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                 deleteBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        cameraView.disableView();
+                        //cameraView.disableView();
                         imageDialog.dismiss();
                         // delete file
                         File toBeDeteled = imageFiles.get(clickedImgIdx);
@@ -328,7 +356,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
 
                         // adjust recognizer
                         recognizer.removeObject(clickedImgIdx);
-                        cameraView.enableView();
+                        //cameraView.enableView();
 
                         // if database gets empty insert zeroObjects textview
                         if (imageFiles.size() == 0) {
@@ -362,11 +390,24 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
 
     // pops up a dialog where user enters the name of the new object and
     // continues to capture its image using a camera
+    public void recognizePhoto(View view) {
+        //cameraView.disableView();
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doPhotoWithCamera();
+            }
+        });
+
+    }
+
+
     public void addObject(View view) {
-        cameraView.disableView();
+        //cameraView.disableView();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final EditText input = new EditText(this);
+
         builder.setCancelable(false)
                 .setTitle("New Object")
                 .setMessage("Choose a name for your new object")
@@ -378,12 +419,37 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 dialog.cancel();
-                                cameraView.enableView();
+                                //cameraView.enableView();
                             }
                         });
+        
 
-        final AlertDialog dialog = builder.create();
-
+        
+        LinearLayout viewDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_selector_fragment,null);
+        radioGroup = (RadioGroup) viewDialog.findViewById(R.id.rg_selector);
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId){
+                    case R.id.build_1:
+                        idBuild = 1;
+                        break;
+                    case R.id.build_2:
+                        idBuild = 2;
+                        break;
+                    case R.id.build_3:
+                        idBuild = 3;
+                        break;
+                    case R.id.build_4:
+                        idBuild = 4;
+                        break;
+                    case R.id.build_5:
+                        idBuild = 5;
+                        break;
+                }
+            }
+        });
+        final AlertDialog dialog = builder.setView(viewDialog).setTitle("Selecciona el edificio a entrenar").create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface d) {
@@ -391,7 +457,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        newImgFilename = input.getText().toString();
+                        dialog.dismiss();
+                        doPhotoWithCamera2();
+                        /*newImgFilename = String.valueOf(idBuild);
                         if (newImgFilename != null
                                 && newImgFilename.length() <= 127
                                 && newImgFilename.matches("[a-zA-Z1-9 ]+")
@@ -417,13 +485,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                                 Toast invalidToast = Toast
                                         .makeText(MainActivity.this, "Invalid name.\nObject was not created", Toast.LENGTH_SHORT);
                                 invalidToast.show();
-                                cameraView.enableView();
+                                //cameraView.enableView();
                             } finally {
                                 dialog.dismiss();
                             }
                         } else {
                             dialog.setMessage("Choose a name for your new object\n\nThe name you entered is invalid. Please retry.");
-                        }
+                        }*/
                     }
                 });
             }
@@ -435,11 +503,64 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        // if new object has been added to application database
-        if (requestCode == CAPTURE_IMAGE) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            Log.d(TAG, "resultCode del captureimage    "+ resultCode);
+            if (resultCode == RESULT_OK) {
+                // Image captured and saved to fileUri specified in the Intent
+               /* if(data!=null) {
+                    Log.d(TAG, "Image saved to:\n" + data.getData());
+                    Bundle extras = data.getExtras();
+                    Bitmap imageBitmap = (Bitmap) extras.get("data");
+                    imageViewPhoto.setImageBitmap(imageBitmap);
+                }*/
+                Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
+			Mat resizedTrainImg = new Mat();
+			Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
+                detectedObj = recognizer.recognize(resizedTrainImg);
+                Firebase mref = new Firebase("https://city-catched.firebaseio.com/buildings");
+                mref.child(detectedObj).child("name").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String s = dataSnapshot.getValue(String.class);
+                        Toast.makeText(MainActivity.this,s,Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+                //Bitmap imageBitmap = BitmapFactory.decodeFile(actuallyPhotoFile.getPath());
+
+
+                //imageViewPhoto.setImageBitmap(imageBitmap);
+                //setPic(imageBitmap);
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d(TAG, "Cancelado en onActivityResult de capture image  " + data.getData());
+            } else {
+                // Image capture failed, advise user
+                Log.d(TAG, "Algo raro en onActivityResult de capture image");
+            }
+        } else if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
 
-                File newFile = new File(getFilesDir(), newImgFilename + ".jpg");
+                Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
+                Mat resizedTrainImg = new Mat();
+                Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
+
+                Mat descriptors = recognizer.getDescriptorsImage(resizedTrainImg);
+
+                byte[] data2 = new byte[(int) (descriptors.total() * descriptors.channels())];
+                descriptors.get(0, 0, data2);
+
+                Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
+                mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
+
+
+
+
+                /*File newFile = new File(getFilesDir(), newImgFilename + ".jpg");
                 File tempFile = new File(tempDir, newImgFilename + ".jpg");
 
                 try {
@@ -456,11 +577,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
                     scrollLinearLayout.removeView(zeroObjects);
                 }
                 imageFiles.add(newFile);
-                recognizer.updateFirebase(getFilesDir(),1);
+                recognizer.updateFirebase(getFilesDir());
 
-                Collections.sort(imageFiles);
+                /*Collections.sort(imageFiles);
                 int newFileIdx = imageFiles.indexOf(newFile);
-                addImageThumbnail(newFile, newFileIdx);
+                addImageThumbnail(newFile, newFileIdx);*/
 
             } else if (resultCode == RESULT_CANCELED) {
                 super.onActivityResult(requestCode, resultCode, data);
@@ -469,4 +590,81 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Goo
             }
         }
     }
+
+
+    private void doPhotoWithCamera(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        Uri fileUri = null; // create a file to save the image
+        try {
+            fileUri = getOutputMediaFileUri();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "doPhotoWithCamera  " + fileUri.getEncodedPath());
+
+        if(fileUri!=null) {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+            // start the image capture Intent
+            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        }
+        else{
+            Log.d(TAG, "file URI null");
+        }
+    }
+    private void doPhotoWithCamera2(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        Uri fileUri = null; // create a file to save the image
+        try {
+            fileUri = getOutputMediaFileUri();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "doPhotoWithCamera2  " + fileUri.getEncodedPath());
+
+        if(fileUri!=null) {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+            // start the image capture Intent
+            startActivityForResult(intent, CAPTURE_IMAGE);
+        }
+        else{
+            Log.d(TAG, "file URI null");
+        }
+    }
+
+    private  Uri getOutputMediaFileUri() throws IOException {
+        //  Log.d(TAG, "getOutPutMediFileUri    " + createFile().getAbsolutePath());
+        return Uri.fromFile(createFile());
+    }
+
+    //Create file in cache and accesible for the camera app
+    private File createFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File tempFile = File.createTempFile(timeStamp, ".jpg", getCacheDir());
+        tempFile.setWritable(true, false);
+        actuallyPhotoFile = tempFile;
+        return tempFile;
+    }
+
+
+    //Change dimension of the image
+    private void setPic(Bitmap immutableBitmap){
+        // Get the dimensions of the View
+        int targetW = imageViewPhoto.getWidth();
+        int targetH = imageViewPhoto.getHeight();
+
+
+        Bitmap output = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+        Matrix m = new Matrix();
+        m.setScale((float) targetW / immutableBitmap.getWidth(), (float) targetH / immutableBitmap.getHeight());
+        canvas.drawBitmap(immutableBitmap, m, new Paint());
+        Log.d(TAG, "Mutableeeeeeee");
+        imageViewPhoto.setImageBitmap(output);
+
+    }
+
 }
