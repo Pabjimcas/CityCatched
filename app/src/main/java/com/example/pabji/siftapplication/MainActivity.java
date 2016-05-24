@@ -26,6 +26,9 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -38,10 +41,15 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.pabji.siftapplication.adapters.ItemListAdapter;
 import com.example.pabji.siftapplication.description.DescriptionActivity;
+
 import com.example.pabji.siftapplication.helpers.CityDBHelper;
 import com.example.pabji.siftapplication.models.Building;
 import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
+
+import com.example.pabji.siftapplication.models.Building;
+
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
 import com.firebase.client.DataSnapshot;
@@ -65,6 +73,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -74,6 +83,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     public static final int MEDIA_TYPE_IMAGE = 1;
     private File actuallyPhotoFile;
     private ImageView imageViewPhoto;
+    private RecyclerView recyclerView;
+
 
     private Mat mRgba;
     private Mat mGray;
@@ -118,6 +129,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private Location lastLocation;
     private RadioGroup radioGroup;
     private int idBuild;
+    private ItemListAdapter adapter;
 
     @Override
     public void onResume() {
@@ -136,13 +148,39 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         setDB();
 
         setContentView(R.layout.activity_main);
-        scrollLinearLayout = (LinearLayout) findViewById(R.id.scrollLinearLayout);
 
         detectedObj = "-";
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         handler = new Handler();
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        List<Building> itemList = new ArrayList<>();
+
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+        itemList.add(new Building("mfoimf","Casa de las Conchas",1.4,1.3,"https://upload.wikimedia.org/wikipedia/commons/6/6a/Salamanca_-_Casa_de_las_Conchas_04.jpg"));
+
+
+        adapter = new ItemListAdapter(this, itemList);
+        adapter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this,"Hola caracola",Toast.LENGTH_SHORT).show();
+            }
+        });
+        recyclerView.setAdapter(adapter);
+
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         Intent checkIntent = new Intent();
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -157,13 +195,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         zeroObjects.setPadding(5, 5, 5, 5);
 
         imageFiles = Utilities.getJPGFiles(getFilesDir());
-        if (imageFiles.size() > 0) {
-            for (File file : imageFiles) {
-                addImageThumbnail(file, -1);
-            }
-        } else {
-            scrollLinearLayout.addView(zeroObjects);
-        }
     }
 
     @Override
