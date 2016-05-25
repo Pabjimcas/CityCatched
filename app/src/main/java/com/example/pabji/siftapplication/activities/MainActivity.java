@@ -14,14 +14,18 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -55,7 +59,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 200;
@@ -73,6 +77,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private static final int CAPTURE_IMAGE = 100;
 
     private GoogleApiClient mGoogleApiClient;
+
+    private Toolbar mToolbar;
 
 
     //For SQLITe
@@ -112,18 +118,27 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
         setDB();
 
         detectedObj = "-";
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        List<Building> buildings = CityDBHelper.getBuildings(db);
+        final List<Building> buildings = CityDBHelper.getBuildings(db);
 
         adapter = new ItemListAdapter(this, buildings);
         adapter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this,"Hola caracola",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, DescriptionActivity.class);
+                Building building = buildings.get(recyclerView.getChildAdapterPosition(v));
+                intent.putExtra("description", building.getDescription());
+                intent.putExtra("latitude", building.getLatitude());
+                intent.putExtra("longitude", building.getLongitude());
+                startActivity(intent);
             }
         });
         recyclerView.setAdapter(adapter);
@@ -191,7 +206,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
 
-    public void addObject(View view) {
+    public void addObject() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final EditText input = new EditText(this);
 
@@ -211,6 +226,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         LinearLayout viewDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_selector_fragment,null);
         radioGroup = (RadioGroup) viewDialog.findViewById(R.id.rg_selector);
+        //addRadioButtons(nearBuilding);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -251,6 +267,29 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         dialog.show();
     }
 
+    /*public void addRadioButtons(List<Building> buildings) {
+
+        for (int i = 0; i <= buildings.size(); i++) {
+            switch (buildings.get(i).getName()){
+                case "Casa de las Conchas":
+                    findViewById(R.id.build_1).setVisibility(View.VISIBLE);
+                    break;
+                case "La Clerecía":
+                    findViewById(R.id.build_2).setVisibility(View.VISIBLE);
+                    break;
+                case "Universidad Pontificia":
+                    findViewById(R.id.build_3).setVisibility(View.VISIBLE);
+                    break;
+                case "Catedral":
+                    findViewById(R.id.build_4).setVisibility(View.VISIBLE);
+                    break;
+                case "Iglesia de San Marcos":
+                    findViewById(R.id.build_5).setVisibility(View.VISIBLE);
+                    break;
+            }
+        }
+    }*/
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -273,7 +312,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                         String longitude = dataSnapshot.child("longitude").getValue(String.class);
 
                         if (description == null || name == null || url_image == null) {
-                            Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
+                            addObject();
+                            //Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
                         } else {
                             saveBuildingToSQLite(name,description,url_image);
                             Intent intent = new Intent();
@@ -375,6 +415,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     public void getLocationFirebase() {
+        nearBuilding.clear();
         firebase = new Firebase("https://city-catched.firebaseio.com/buildings");
         firebase.addValueEventListener(new ValueEventListener() {
 

@@ -32,8 +32,6 @@ public class ObjectRecognizer {
 	private DescriptorExtractor descriptor;
 	private DescriptorMatcher matcher;
 
-	private ArrayList<Mat> trainImages;
-	private ArrayList<MatOfKeyPoint> trainKeypoints;
 	private ArrayList<Mat> trainDescriptors;
 	private ArrayList<String> objectNames;
 
@@ -44,38 +42,6 @@ public class ObjectRecognizer {
 	private int[] numMatchesInImage;
 	private  boolean listo = false;
 	private HashMap<String, List<String>> map;
-
-	public void updateFirebase(File dir){
-		Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
-		ArrayList<File> jpgFiles = Utilities.getJPGFiles(dir);
-		trainImages = Utilities.getImageMats(jpgFiles);
-		objectNames = Utilities.getFileNames(jpgFiles);
-
-		detector = FeatureDetector.create(FeatureDetector.ORB);
-		descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-		matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
-
-		trainKeypoints = new ArrayList<MatOfKeyPoint>();
-		trainDescriptors = new ArrayList<Mat>();
-
-		for (int i = 0; i < trainImages.size(); i++) {
-			String build = objectNames.get(i);
-			trainKeypoints.add(new MatOfKeyPoint());
-			detector.detect(trainImages.get(i), trainKeypoints.get(i));
-			trainDescriptors.add(new Mat());
-			descriptor.compute(trainImages.get(i), trainKeypoints.get(i),
-						trainDescriptors.get(i));
-			Mat mat = trainDescriptors.get(i);
-			byte[] data = new byte[(int) (mat.total() * mat.channels())];
-			mat.get(0, 0, data);
-
-			mref.child(build).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data));
-		}
-
-		matcher.add(trainDescriptors);
-		matcher.train();
-		dir.delete();
-	}
 
 	public ObjectRecognizer(final Context context, List<String> buildings) {
 
@@ -140,29 +106,6 @@ public class ObjectRecognizer {
 		return descriptors;
 	}
 
-	public void sendFirebase (Mat mat, Location location, int val){
-		Firebase mref = new Firebase("https://city-catched.firebaseio.com/");
-		MatOfKeyPoint matKeypoints = new MatOfKeyPoint();
-		Mat matDescriptor = new Mat();
-		detector.detect(mat, matKeypoints);
-		descriptor.compute(mat, matKeypoints,matDescriptor);
-
-		byte[] data = new byte[ (int) (matDescriptor.total() * matDescriptor.channels()) ];
-		mat.get(0,  0, data);
-		mref.child("descriptors").child(String.valueOf(val)).child(String.valueOf(System.currentTimeMillis())).setValue(Arrays.toString(data));
-		Log.d("FIREBASE","OK");
-	}
-
-	public void removeObject(int clickedImgIdx) {
-		trainImages.remove(clickedImgIdx);
-		objectNames.remove(clickedImgIdx);
-		trainKeypoints.remove(clickedImgIdx);
-		trainDescriptors.remove(clickedImgIdx);
-
-		matcher.clear();
-		matcher.add(trainDescriptors);
-		matcher.train();
-	}
 
 	public String recognize(Mat mGray) {
 		if(listo){

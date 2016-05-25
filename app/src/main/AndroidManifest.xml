@@ -30,8 +30,6 @@
 
         <activity android:name=".activities.MainActivity">
         </activity>
-        <activity android:name=".foto.PhotoActivity" >
-        </activity>
         <activity
             android:name=".activities.DescriptionActivity"
             android:label="Descripcion" >
