@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,16 +23,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.pabji.siftapplication.adapters.ItemListAdapter;
 import com.example.pabji.siftapplication.description.DescriptionActivity;
-
 import com.example.pabji.siftapplication.helpers.CityDBHelper;
 import com.example.pabji.siftapplication.models.Building;
 import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
-
 import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
 import com.example.pabji.siftapplication.object_recog.Utilities;
 import com.firebase.client.DataSnapshot;
@@ -121,7 +117,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         detectedObj = "-";
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
 
         List<Building> buildings = CityDBHelper.getBuildings(db);
 
@@ -259,7 +254,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             Log.d(TAG, "resultCode del captureimage    "+ resultCode);
             if (resultCode == RESULT_OK) {
@@ -276,13 +270,18 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                         String name = dataSnapshot.child("name").getValue(String.class);
                         String description = dataSnapshot.child("description").getValue(String.class);
                         String url_image = dataSnapshot.child("url_image").getValue(String.class);
-                        if (description == null && name == null && url_image == null) {
+                        String latitude = dataSnapshot.child("latitude").getValue(String.class);
+                        String longitude = dataSnapshot.child("longitude").getValue(String.class);
+
+                        if (description == null || name == null || url_image == null) {
                             Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
                         } else {
                             saveBuildingToSQLite(name,description,url_image);
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, DescriptionActivity.class);
                             intent.putExtra("description", description);
+                            intent.putExtra("latitude", latitude);
+                            intent.putExtra("longitude", longitude);
                             startActivity(intent);
                         }
                     }

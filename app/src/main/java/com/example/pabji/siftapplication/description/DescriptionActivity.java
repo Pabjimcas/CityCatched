@@ -12,8 +12,14 @@ public class DescriptionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_description);
 
+        Bundle b = getIntent().getExtras();
+
+        String name = b.getString("description");
+        String latitude = b.getString("latitude");
+        String longitude = b.getString("longitude");
+
         if (savedInstanceState == null) {
-            WebviewFragment webFragmentFragment = WebviewFragment.newInstance((String) getIntent().getExtras().get("description"));
+            WebviewFragment webFragmentFragment = WebviewFragment.newInstance(name, latitude, longitude);
             getFragmentManager().beginTransaction().add(android.R.id.content, webFragmentFragment).commit();
         }
     }
