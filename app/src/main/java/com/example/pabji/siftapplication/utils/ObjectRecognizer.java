@@ -1,11 +1,10 @@
-package com.example.pabji.siftapplication.object_recog;
+package com.example.pabji.siftapplication.utils;
 
 import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.pabji.siftapplication.models.Building;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;

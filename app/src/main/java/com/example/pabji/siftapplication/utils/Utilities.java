@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication.object_recog;
+package com.example.pabji.siftapplication.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication.description;
+package com.example.pabji.siftapplication.fragments;
 
 import android.app.Fragment;
 import android.content.Intent;

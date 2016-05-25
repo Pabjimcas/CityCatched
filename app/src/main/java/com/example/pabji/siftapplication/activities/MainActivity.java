@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication;
+package com.example.pabji.siftapplication.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -25,13 +25,13 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.example.pabji.siftapplication.R;
 import com.example.pabji.siftapplication.adapters.ItemListAdapter;
-import com.example.pabji.siftapplication.description.DescriptionActivity;
-import com.example.pabji.siftapplication.helpers.CityDBHelper;
+import com.example.pabji.siftapplication.persistence.CityDBHelper;
 import com.example.pabji.siftapplication.models.Building;
-import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
-import com.example.pabji.siftapplication.object_recog.ObjectRecognizer;
-import com.example.pabji.siftapplication.object_recog.Utilities;
+import com.example.pabji.siftapplication.persistence.CitySQLiteOpenHelper;
+import com.example.pabji.siftapplication.utils.ObjectRecognizer;
+import com.example.pabji.siftapplication.utils.Utilities;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -67,7 +67,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     private String detectedObj;
     private Firebase firebase;
-    private List builds = new ArrayList();
     private static ObjectRecognizer recognizer;
     public List nearBuilding = new ArrayList();
 

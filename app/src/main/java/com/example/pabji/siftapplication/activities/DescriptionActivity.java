@@ -1,9 +1,10 @@
-package com.example.pabji.siftapplication.description;
+package com.example.pabji.siftapplication.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.pabji.siftapplication.R;
+import com.example.pabji.siftapplication.fragments.WebviewFragment;
 
 public class DescriptionActivity extends AppCompatActivity {
 

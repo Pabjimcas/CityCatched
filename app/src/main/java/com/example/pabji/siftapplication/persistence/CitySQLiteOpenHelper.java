@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication.models;
+package com.example.pabji.siftapplication.persistence;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

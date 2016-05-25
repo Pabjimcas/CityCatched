@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication;
+package com.example.pabji.siftapplication.activities;
 
 import android.app.Application;
 

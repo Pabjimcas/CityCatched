@@ -1,4 +1,4 @@
-package com.example.pabji.siftapplication.helpers;
+package com.example.pabji.siftapplication.persistence;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.example.pabji.siftapplication.models.Building;
-import com.example.pabji.siftapplication.models.CitySQLiteOpenHelper;
 
 import java.util.ArrayList;
 
