@@ -24,7 +24,7 @@ public class CitySQLiteOpenHelper extends SQLiteOpenHelper {
     //SQL statement for create table costume  //Comprobar que sea con mayusculas
     String citySqlCreate = "CREATE TABLE " + DATABASE_TABLE + "("
             + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + KEY_NAME + " TEXT, "
+            + KEY_NAME + " TEXT unique, "
             + KEY_DESCRIPTION + " TEXT, "
             + KEY_URL_IMAGE + " TEXT)";
 
