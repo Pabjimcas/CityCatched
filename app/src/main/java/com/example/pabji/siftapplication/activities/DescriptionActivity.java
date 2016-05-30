@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.pabji.siftapplication.R;
+import com.example.pabji.siftapplication.fragments.DescriptionFragment;
 import com.example.pabji.siftapplication.fragments.WebviewFragment;
 
 public class DescriptionActivity extends AppCompatActivity {
@@ -18,10 +19,12 @@ public class DescriptionActivity extends AppCompatActivity {
         String name = b.getString("description");
         String latitude = b.getString("latitude");
         String longitude = b.getString("longitude");
+        String id = b.getString("id");
+        String url_image = b.getString("url_image");
 
         if (savedInstanceState == null) {
-            WebviewFragment webFragmentFragment = WebviewFragment.newInstance(name, latitude, longitude);
-            getFragmentManager().beginTransaction().add(android.R.id.content, webFragmentFragment).commit();
+            DescriptionFragment descriptionFragment = DescriptionFragment.newInstance(name, id,latitude, longitude,url_image);
+            getSupportFragmentManager().beginTransaction().replace(R.id.flRecipe,descriptionFragment).commit();
         }
     }
 }

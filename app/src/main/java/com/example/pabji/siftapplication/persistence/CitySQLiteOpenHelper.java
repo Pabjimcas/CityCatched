@@ -15,15 +15,19 @@ public class CitySQLiteOpenHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_TABLE = "cityCatchedTable";
 
-    private static final String KEY_ID = "id";
+    public static final String KEY_ID = "id";
     public static final String KEY_NAME = "name";
     public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_URL_IMAGE = "url_image";
+    public static final String KEY_LONGITUD = "longitud";
+    public static final String KEY_LATITUD = "latitud";
 
 
     //SQL statement for create table costume  //Comprobar que sea con mayusculas
     String citySqlCreate = "CREATE TABLE " + DATABASE_TABLE + "("
-            + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + KEY_ID + " INTEGER PRIMARY KEY, "
+            + KEY_LATITUD + " TEXT, "
+            + KEY_LONGITUD + " TEXT, "
             + KEY_NAME + " TEXT unique, "
             + KEY_DESCRIPTION + " TEXT, "
             + KEY_URL_IMAGE + " TEXT)";

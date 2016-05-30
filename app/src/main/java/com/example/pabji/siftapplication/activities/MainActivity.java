@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -135,9 +136,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, DescriptionActivity.class);
                 Building building = buildings.get(recyclerView.getChildAdapterPosition(v));
-                intent.putExtra("description", building.getDescription());
+                intent.putExtra("name", building.getName());
                 intent.putExtra("latitude", building.getLatitude());
-                intent.putExtra("longitude", building.getLongitude());
+                intent.putExtra("url_image",building.getUrl_image());
+                intent.putExtra("id",building.getId());
+                intent.putExtra("longitude", building.getLatitude());
                 startActivity(intent);
             }
         });
@@ -145,7 +148,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        recyclerView.setLayoutManager(new GridLayoutManager(this,2));
+        //recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         getLocationFirebase();
     }
@@ -315,11 +319,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             addObject();
                             //Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
                         } else {
-                            saveBuildingToSQLite(name,description,url_image);
+                            CityDBHelper.insertBuilding(db,name,description,url_image,latitude,longitude,dataSnapshot.getKey());
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, DescriptionActivity.class);
-                            intent.putExtra("description", description);
+                            intent.putExtra("name", name);
                             intent.putExtra("latitude", latitude);
+                            intent.putExtra("url_image",url_image);
+                            intent.putExtra("id",dataSnapshot.getKey());
                             intent.putExtra("longitude", longitude);
                             startActivity(intent);
                         }
@@ -392,20 +398,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return tempFile;
     }
 
-
-    private void saveBuildingToSQLite(String name, String description, String url_image) {
-
-        long rows = CityDBHelper.insertBuilding(db,name,description,url_image);
-
-        //Quitarlo despues del debug
-        if(rows>0){
-            Log.d(TAG, "ha habido inserciones");
-        }
-        else{
-            Log.d(TAG, "error insertando posiblemente");
-        }
-
-    }
     private void setDB(){
         if(db==null){
             CitySQLiteOpenHelper cityDB = CitySQLiteOpenHelper.getInstance(this, CitySQLiteOpenHelper.DATABASE_NAME, null, CitySQLiteOpenHelper.DATABASE_VERSION);

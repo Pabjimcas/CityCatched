@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.example.pabji.siftapplication.R;
 import com.example.pabji.siftapplication.models.Building;
+import com.example.pabji.siftapplication.models.Description;
 import com.squareup.picasso.Picasso;
 
 public class ItemListHolder extends RecyclerView.ViewHolder {

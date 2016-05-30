@@ -16,12 +16,15 @@ public class CityDBHelper {
 
     private static final String TAG = "COSTUME_DBHELPER";
 
-    public static long insertBuilding(SQLiteDatabase db, String name, String description, String url_image){
+    public static long insertBuilding(SQLiteDatabase db, String name, String description, String url_image, String latitud, String longitud, String id){
 
         ContentValues newCity = new ContentValues();
         newCity.put(CitySQLiteOpenHelper.KEY_NAME, name);
         newCity.put(CitySQLiteOpenHelper.KEY_DESCRIPTION, description);
         newCity.put(CitySQLiteOpenHelper.KEY_URL_IMAGE, url_image);
+        newCity.put(CitySQLiteOpenHelper.KEY_LATITUD, latitud);
+        newCity.put(CitySQLiteOpenHelper.KEY_LONGITUD, longitud);
+        newCity.put(CitySQLiteOpenHelper.KEY_ID, id);
 
         long rows = db.insert(CitySQLiteOpenHelper.DATABASE_TABLE, null, newCity);
         Log.d(TAG,"rows insertadas: " + rows);
@@ -42,7 +45,7 @@ public class CityDBHelper {
 
 
         String[] campos = new String[]{CitySQLiteOpenHelper.KEY_NAME, CitySQLiteOpenHelper.KEY_DESCRIPTION,
-                CitySQLiteOpenHelper.KEY_URL_IMAGE};
+                CitySQLiteOpenHelper.KEY_URL_IMAGE,CitySQLiteOpenHelper.KEY_ID,CitySQLiteOpenHelper.KEY_LATITUD,CitySQLiteOpenHelper.KEY_LONGITUD};
 
         Cursor c = db.query(CitySQLiteOpenHelper.DATABASE_TABLE, campos, null, null, null, null,
                 null);
@@ -56,8 +59,11 @@ public class CityDBHelper {
                 String name = c.getString(0);
                 String description = c.getString(1);
                 String url_image = c.getString(2);
+                String id = c.getString(3);
+                Double latitud = Double.valueOf(c.getString(4));
+                Double longitud = Double.valueOf(c.getString(5));
 
-                Building building = new Building(description,name,null,null,url_image);
+                Building building = new Building(description,name,latitud,longitud,url_image,id);
                 buildings.add(building);
               //  Log.d("Conseguimos: name: " + name, "category: " + category + "materials: " + materials + "steps: " + steps + "prize: " + prize + "uri_image: " + uri_image + "\n");
             } while (c.moveToNext());

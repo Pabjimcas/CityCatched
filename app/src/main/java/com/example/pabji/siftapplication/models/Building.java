@@ -10,6 +10,15 @@ public class Building {
     Double latitude;
     Double longitude;
     String url_image;
+    String id;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;
@@ -51,11 +60,12 @@ public class Building {
         this.url_image = url_image;
     }
 
-    public Building(String description, String name, Double latitude, Double longitude, String url_image) {
+    public Building(String description, String name, Double latitude, Double longitude, String url_image, String id) {
         this.description = description;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
         this.url_image = url_image;
+        this.id = id;
     }
 }
