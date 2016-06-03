@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
+        //Aqui habria que comprobar que lastlocation no fuera nulo
     }
 
     @Override
@@ -262,7 +263,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     @Override
                     public void onClick(View view) {
                         dialog.dismiss();
-                        doPhotoWithCamera(CAPTURE_IMAGE);
+                        setPhotoToBuilding();
+                       // doPhotoWithCamera(CAPTURE_IMAGE);
                     }
                 });
             }
@@ -271,6 +273,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         dialog.show();
     }
 
+    private void setPhotoToBuilding(){
+        Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
+        Mat resizedTrainImg = new Mat();
+        Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
+
+        Mat descriptors = recognizer.getDescriptorsImage(resizedTrainImg);
+
+        byte[] data2 = new byte[(int) (descriptors.total() * descriptors.channels())];
+        descriptors.get(0, 0, data2);
+
+        Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
+        mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
+    }
     /*public void addRadioButtons(List<Building> buildings) {
 
         for (int i = 0; i <= buildings.size(); i++) {
@@ -343,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // Image capture failed, advise user
                 Log.d(TAG, "Algo raro en onActivityResult de capture image");
             }
-        } else if (requestCode == CAPTURE_IMAGE) {
+        }/* else if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
 
                 Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
@@ -363,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 super.onActivityResult(requestCode, resultCode, data);
             }
-        }
+        }*/
     }
     private void doPhotoWithCamera(int code){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
