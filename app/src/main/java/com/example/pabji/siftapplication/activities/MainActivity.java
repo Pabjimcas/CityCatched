@@ -1,7 +1,6 @@
 package com.example.pabji.siftapplication.activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,23 +16,19 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.example.pabji.siftapplication.R;
 import com.example.pabji.siftapplication.adapters.ItemListAdapter;
-import com.example.pabji.siftapplication.persistence.CityDBHelper;
 import com.example.pabji.siftapplication.models.Building;
+import com.example.pabji.siftapplication.persistence.CityDBHelper;
 import com.example.pabji.siftapplication.persistence.CitySQLiteOpenHelper;
 import com.example.pabji.siftapplication.utils.ObjectRecognizer;
 import com.example.pabji.siftapplication.utils.Utilities;
@@ -81,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private Toolbar mToolbar;
 
-
     //For SQLITe
     private SQLiteDatabase db;
 
@@ -91,7 +85,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
                     getLocationFirebase();
-                    recognizer = new ObjectRecognizer(MainActivity.this,nearBuilding);
+                    if (nearBuilding != null)
+                        recognizer = new ObjectRecognizer(MainActivity.this, nearBuilding);
                 }
                 break;
                 default: {
@@ -119,11 +114,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
         setDB();
-
         detectedObj = "-";
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
@@ -134,23 +128,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.setClass(MainActivity.this, DescriptionActivity.class);
+                intent.setClass(MainActivity.this, SecondActivity.class);
                 Building building = buildings.get(recyclerView.getChildAdapterPosition(v));
+
                 intent.putExtra("name", building.getName());
+                intent.putExtra("description", building.getDescription());
                 intent.putExtra("latitude", building.getLatitude());
-                intent.putExtra("url_image",building.getUrl_image());
-                intent.putExtra("id",building.getId());
+                intent.putExtra("url_image", building.getUrl_image());
                 intent.putExtra("longitude", building.getLatitude());
                 startActivity(intent);
             }
         });
         recyclerView.setAdapter(adapter);
-
-
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(this,2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+
         getLocationFirebase();
     }
 
@@ -173,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
-        //Aqui habria que comprobar que lastlocation no fuera nulo
     }
 
     @Override
@@ -216,11 +209,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         final EditText input = new EditText(this);
 
         builder.setCancelable(false)
-                .setTitle("New Object")
-                .setMessage("Choose a name for your new object")
+                .setTitle("Edificios disponibles")
+                .setMessage("Elija uno de los edificios")
                 .setView(input)
-                .setPositiveButton("Proceed", null)
-                .setNegativeButton("Cancel",
+                .setPositiveButton("Aceptar", null)
+                .setNegativeButton("Cancelar",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog,
@@ -229,13 +222,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             }
                         });
 
-        LinearLayout viewDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_selector_fragment,null);
+        LinearLayout viewDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_selector_fragment, null);
         radioGroup = (RadioGroup) viewDialog.findViewById(R.id.rg_selector);
         //addRadioButtons(nearBuilding);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId){
+                switch (checkedId) {
                     case R.id.build_1:
                         idBuild = 1;
                         break;
@@ -262,15 +255,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        dialog.dismiss();
-                        setPhotoToBuilding();
-                       // doPhotoWithCamera(CAPTURE_IMAGE);
+                        if (radioGroup.getCheckedRadioButtonId() == -1){
+
+                        }else{
+                            dialog.dismiss();
+                            setPhotoToBuilding();
+
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle("Felicidades")
+                                    .setMessage("Muchas gracias por ayudar a perfeccionar la aplicación")
+                                    .setPositiveButton(android.R.string.ok, null) // dismisses by default
+                                    .create()
+                                    .show();
+
+
+//                            doPhotoWithCamera(CAPTURE_IMAGE);
+                        }
                     }
                 });
             }
         });
 
         dialog.show();
+
+
     }
 
     private void setPhotoToBuilding(){
@@ -286,61 +294,52 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
         mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
     }
-    /*public void addRadioButtons(List<Building> buildings) {
-
-        for (int i = 0; i <= buildings.size(); i++) {
-            switch (buildings.get(i).getName()){
-                case "Casa de las Conchas":
-                    findViewById(R.id.build_1).setVisibility(View.VISIBLE);
-                    break;
-                case "La Clerecía":
-                    findViewById(R.id.build_2).setVisibility(View.VISIBLE);
-                    break;
-                case "Universidad Pontificia":
-                    findViewById(R.id.build_3).setVisibility(View.VISIBLE);
-                    break;
-                case "Catedral":
-                    findViewById(R.id.build_4).setVisibility(View.VISIBLE);
-                    break;
-                case "Iglesia de San Marcos":
-                    findViewById(R.id.build_5).setVisibility(View.VISIBLE);
-                    break;
-            }
-        }
-    }*/
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-            Log.d(TAG, "resultCode del captureimage    "+ resultCode);
+            Log.d(TAG, "resultCode del captureimage    " + resultCode);
             if (resultCode == RESULT_OK) {
 
                 Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
-			Mat resizedTrainImg = new Mat();
-			Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
+                Mat resizedTrainImg = new Mat();
+                Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
                 detectedObj = recognizer.recognize(resizedTrainImg);
                 Firebase mref = new Firebase("https://city-catched.firebaseio.com/buildings");
                 mref.child(detectedObj).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.d("TAG",dataSnapshot.getKey());
+                        Log.d("TAG", dataSnapshot.getKey());
                         String name = dataSnapshot.child("name").getValue(String.class);
                         String description = dataSnapshot.child("description").getValue(String.class);
                         String url_image = dataSnapshot.child("url_image").getValue(String.class);
                         String latitude = dataSnapshot.child("latitude").getValue(String.class);
                         String longitude = dataSnapshot.child("longitude").getValue(String.class);
 
-                        if (description == null || name == null || url_image == null) {
-                            addObject();
-                            //Toast.makeText(MainActivity.this, "Intentelo de nuevo", Toast.LENGTH_SHORT).show();
+                        if (description == null || name == null || url_image == null || latitude == null || longitude == null) {
+
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle("Edificio no reconocido")
+                                    .setIcon(R.drawable.build_failed)
+                                    .setMessage("¿Desea ayudar a que la App crezca y aprenda seleccionando un edificio?")
+                                    .setNegativeButton(android.R.string.cancel, null) // dismisses by default
+                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            addObject();
+                                        }
+                                    })
+                                    .create()
+                                    .show();
+
                         } else {
-                            CityDBHelper.insertBuilding(db,name,description,url_image,latitude,longitude,dataSnapshot.getKey());
+                            CityDBHelper.insertBuilding(db, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
                             Intent intent = new Intent();
-                            intent.setClass(MainActivity.this, DescriptionActivity.class);
+                            intent.setClass(MainActivity.this, SecondActivity.class);
                             intent.putExtra("name", name);
+                            intent.putExtra("description", description);
                             intent.putExtra("latitude", latitude);
-                            intent.putExtra("url_image",url_image);
-                            intent.putExtra("id",dataSnapshot.getKey());
+                            intent.putExtra("url_image", url_image);
+                            intent.putExtra("id", dataSnapshot.getKey());
                             intent.putExtra("longitude", longitude);
                             startActivity(intent);
                         }
@@ -358,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // Image capture failed, advise user
                 Log.d(TAG, "Algo raro en onActivityResult de capture image");
             }
-        }/* else if (requestCode == CAPTURE_IMAGE) {
+        } else if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
 
                 Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
@@ -378,8 +377,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 super.onActivityResult(requestCode, resultCode, data);
             }
-        }*/
+        }
     }
+
     private void doPhotoWithCamera(int code){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -413,8 +413,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return tempFile;
     }
 
-    private void setDB(){
-        if(db==null){
+    private void setDB() {
+        if (db == null) {
             CitySQLiteOpenHelper cityDB = CitySQLiteOpenHelper.getInstance(this, CitySQLiteOpenHelper.DATABASE_NAME, null, CitySQLiteOpenHelper.DATABASE_VERSION);
 
             db = cityDB.getWritableDatabase();
@@ -431,8 +431,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Double latitude = postSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = postSnapshot.child("longitude").getValue(Double.class);
-                    if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
-                            lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
+                    if (40.9628 < latitude + 0.0015 && 40.9628 > latitude - 0.0015 &&
+                            -5.6659 < longitude + 0.0015 && -5.6659 > longitude - 0.0015) {
                         nearBuilding.add(postSnapshot.getKey());
                     }
                 }

@@ -29,7 +29,8 @@
         <activity android:name=".activities.MainActivity"></activity>
         <activity
             android:name=".activities.DescriptionActivity"
-            android:label="Descripcion"></activity>
+            android:label="Descripcion" />
+        <activity android:name=".activities.SecondActivity"></activity>
     </application>
 
 </manifest>
