@@ -21,6 +21,7 @@ public class CitySQLiteOpenHelper extends SQLiteOpenHelper {
     public static final String KEY_URL_IMAGE = "url_image";
     public static final String KEY_LONGITUD = "longitud";
     public static final String KEY_LATITUD = "latitud";
+    public static final String KEY_INTRO = "intro";
 
 
     //SQL statement for create table costume  //Comprobar que sea con mayusculas
@@ -30,6 +31,7 @@ public class CitySQLiteOpenHelper extends SQLiteOpenHelper {
             + KEY_LONGITUD + " TEXT, "
             + KEY_NAME + " TEXT unique, "
             + KEY_DESCRIPTION + " TEXT, "
+            + KEY_INTRO + " TEXT, "
             + KEY_URL_IMAGE + " TEXT)";
 
 

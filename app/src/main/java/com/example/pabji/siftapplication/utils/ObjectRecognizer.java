@@ -3,7 +3,6 @@ package com.example.pabji.siftapplication.utils;
 import android.content.Context;
 import android.location.Location;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -83,7 +82,6 @@ public class ObjectRecognizer {
 				matcher.clear();
 				matcher.add(trainDescriptors);
 				matcher.train();
-				Toast.makeText(context,String.valueOf(matcher.getTrainDescriptors().size()),Toast.LENGTH_SHORT).show();
 				listo = true;
 			}
 

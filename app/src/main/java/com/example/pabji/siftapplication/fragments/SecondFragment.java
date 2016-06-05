@@ -3,10 +3,16 @@ package com.example.pabji.siftapplication.fragments;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.method.ScrollingMovementMethod;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +21,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.pabji.siftapplication.R;
-import com.example.pabji.siftapplication.activities.DescriptionActivity;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -31,16 +36,19 @@ public class SecondFragment extends Fragment {
     private ImageView ivBuild;
     private TextView tvName;
     private FloatingActionButton fbMap;
-    private FloatingActionButton fbInfo;
     private String url_image;
     private String description;
+    private String intro;
     private ProgressBar loading;
+    private Toolbar toolbar;
+    private CoordinatorLayout appBarLayout;
+    private TextView textIntro;
 
     public SecondFragment() {
         // Required empty public constructor
     }
 
-    public static SecondFragment newInstance(String name, String description, String latitude, String longitude, String url_image) {
+    public static SecondFragment newInstance(String name, String description, String latitude, String longitude, String url_image,String intro) {
         SecondFragment secondFragment = new SecondFragment();
         Bundle args = new Bundle();
         args.putString("name", name);
@@ -48,6 +56,7 @@ public class SecondFragment extends Fragment {
         args.putString("latitude", latitude);
         args.putString("longitude", longitude);
         args.putString("url_image", url_image);
+        args.putString("intro",intro);
         secondFragment.setArguments(args);
         return secondFragment;
     }
@@ -56,31 +65,50 @@ public class SecondFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_second, container, false);
+
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         getUIControls(view);
-        loading.setVisibility(View.VISIBLE);
+        setSizeAppBarLayout();
+        configureView();
+
+        //loading.setVisibility(View.VISIBLE);
+
+    }
+
+    public void setSizeAppBarLayout(){
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)appBarLayout.getLayoutParams();
+            params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, getResources().getDisplayMetrics());
+            params.width = params.MATCH_PARENT;
+            appBarLayout.setLayoutParams(params);
+        }
+    }
+
+
+    private void configureView() {
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         if (getArguments() != null) {
             description = (String) getArguments().get("description");
             latitude = (String) getArguments().get("latitude");
             longitude = (String) getArguments().get("longitude");
             name = (String) getArguments().get("name");
             url_image = (String) getArguments().get("url_image");
-
+            intro = (String) getArguments().get("intro");
+            getActivity().setTitle(name);
+            textIntro.setText(intro);
+            textIntro.setMovementMethod(new ScrollingMovementMethod());
         }
 
         if (url_image != null) {
             Picasso.with(getActivity()).load(url_image).into(ivBuild);
-            loading.setVisibility(View.GONE);
+//            loading.setVisibility(View.GONE);
         }
-
-        fbInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), DescriptionActivity.class);
-                intent.putExtra("description", description);
-                startActivity(intent);
-            }
-        });
 
         fbMap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,20 +117,15 @@ public class SecondFragment extends Fragment {
                 startActivity(intent);
             }
         });
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
 
 
     }
 
     private void getUIControls(View view) {
         fbMap = (FloatingActionButton) view.findViewById(R.id.fb_map);
-        fbInfo = (FloatingActionButton) view.findViewById(R.id.fb_info);
-        loading = (ProgressBar) view.findViewById(R.id.pb_second);
-        ivBuild = (ImageView) view.findViewById(R.id.iv_second);
+        toolbar = (Toolbar) view.findViewById(R.id.toolbar);
+        textIntro = (TextView) view.findViewById(R.id.intro);
+        //loading = (ProgressBar) view.findViewById(R.id.pb_second);
+        ivBuild = (ImageView) view.findViewById(R.id.photo);
     }
 }

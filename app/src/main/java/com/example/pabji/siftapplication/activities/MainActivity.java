@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private String detectedObj;
     private Firebase firebase;
-    private static ObjectRecognizer recognizer;
+    public static ObjectRecognizer recognizer;
     public List nearBuilding = new ArrayList();
 
     private static final int CAPTURE_IMAGE = 100;
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Toolbar mToolbar;
 
     //For SQLITe
-    private SQLiteDatabase db;
+    public static SQLiteDatabase db;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 intent.putExtra("latitude", building.getLatitude());
                 intent.putExtra("url_image", building.getUrl_image());
                 intent.putExtra("longitude", building.getLatitude());
+                intent.putExtra("intro",building.getIntro());
                 startActivity(intent);
             }
         });
@@ -314,8 +315,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         String url_image = dataSnapshot.child("url_image").getValue(String.class);
                         String latitude = dataSnapshot.child("latitude").getValue(String.class);
                         String longitude = dataSnapshot.child("longitude").getValue(String.class);
+                        String intro = dataSnapshot.child("intro").getValue(String.class);
 
-                        if (description == null || name == null || url_image == null || latitude == null || longitude == null) {
+                        if (name == null) {
 
                             new AlertDialog.Builder(MainActivity.this)
                                     .setTitle("Edificio no reconocido")
@@ -332,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                     .show();
 
                         } else {
-                            CityDBHelper.insertBuilding(db, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
+                            CityDBHelper.insertBuilding(db,intro, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, SecondActivity.class);
                             intent.putExtra("name", name);
@@ -341,6 +343,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             intent.putExtra("url_image", url_image);
                             intent.putExtra("id", dataSnapshot.getKey());
                             intent.putExtra("longitude", longitude);
+                            intent.putExtra("intro",intro);
                             startActivity(intent);
                         }
                     }
@@ -392,6 +395,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.d(TAG, "doPhotoWithCamera  " + fileUri.getEncodedPath());
 
         if(fileUri!=null) {
+            intent.putExtra("Image",actuallyPhotoFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
             startActivityForResult(intent, code);
         }
