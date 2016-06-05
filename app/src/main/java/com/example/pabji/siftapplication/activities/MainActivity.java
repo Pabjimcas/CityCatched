@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.example.pabji.siftapplication.R;
 import com.example.pabji.siftapplication.adapters.ItemListAdapter;
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private RadioGroup radioGroup;
     private int idBuild;
     private ItemListAdapter adapter;
+    private TextView tvPlacesVisited;
 
     @Override
     public void onResume() {
@@ -113,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        tvPlacesVisited = (TextView) findViewById(R.id.tv_places_visites);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
@@ -123,6 +125,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         final List<Building> buildings = CityDBHelper.getBuildings(db);
 
+        if (buildings.size()==0 || buildings==null){
+            tvPlacesVisited.setText("No has visitado ningún sitio de interés");
+        }else{
+            tvPlacesVisited.setText("Edificios visitados");
+
+        }
         adapter = new ItemListAdapter(this, buildings);
         adapter.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 intent.putExtra("latitude", building.getLatitude());
                 intent.putExtra("url_image", building.getUrl_image());
                 intent.putExtra("longitude", building.getLatitude());
-                intent.putExtra("intro",building.getIntro());
+                intent.putExtra("intro", building.getIntro());
                 startActivity(intent);
             }
         });
@@ -256,9 +264,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if (radioGroup.getCheckedRadioButtonId() == -1){
+                        if (radioGroup.getCheckedRadioButtonId() == -1) {
 
-                        }else{
+                        } else {
                             dialog.dismiss();
                             setPhotoToBuilding();
 
@@ -282,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    private void setPhotoToBuilding(){
+    private void setPhotoToBuilding() {
         Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
         Mat resizedTrainImg = new Mat();
         Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
@@ -295,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
         mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -334,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                     .show();
 
                         } else {
-                            CityDBHelper.insertBuilding(db,intro, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
+                            CityDBHelper.insertBuilding(db, intro, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, SecondActivity.class);
                             intent.putExtra("name", name);
@@ -343,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             intent.putExtra("url_image", url_image);
                             intent.putExtra("id", dataSnapshot.getKey());
                             intent.putExtra("longitude", longitude);
-                            intent.putExtra("intro",intro);
+                            intent.putExtra("intro", intro);
                             startActivity(intent);
                         }
                     }
@@ -383,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private void doPhotoWithCamera(int code){
+    private void doPhotoWithCamera(int code) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         Uri fileUri = null; // create a file to save the image
@@ -394,17 +403,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         Log.d(TAG, "doPhotoWithCamera  " + fileUri.getEncodedPath());
 
-        if(fileUri!=null) {
-            intent.putExtra("Image",actuallyPhotoFile);
+        if (fileUri != null) {
+            intent.putExtra("Image", actuallyPhotoFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
             startActivityForResult(intent, code);
-        }
-        else{
+        } else {
             Log.d(TAG, "file URI null");
         }
     }
 
-    private  Uri getOutputMediaFileUri() throws IOException {
+    private Uri getOutputMediaFileUri() throws IOException {
         return Uri.fromFile(createFile());
     }
 
