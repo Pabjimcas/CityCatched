@@ -2,6 +2,7 @@ package com.example.pabji.siftapplication.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     //For SQLITe
     public static SQLiteDatabase db;
+    ProgressDialog progress;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -125,6 +127,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         final List<Building> buildings = CityDBHelper.getBuildings(db);
+        progress = new ProgressDialog(this);
+        progress.setMessage("Aprendiendo ...");
+        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progress.setIndeterminate(true);
 
         if (buildings.size()==0 || buildings==null){
             tvPlacesVisited.setText("No has visitado ningún sitio de interés");
@@ -177,9 +183,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
-        //Comprobar que lastlocation se distinto de null
         if(lastLocation==null){
-            //Calcular de otra forma, pongo 0 para que no pete al menos
             lastLocation = new Location("");
             lastLocation.setLatitude(0);
             lastLocation.setLongitude(0);
@@ -272,6 +276,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        progress.show();
                         if (radioGroup.getCheckedRadioButtonId() == -1){
 
                         }else{
@@ -280,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
                             new AlertDialog.Builder(MainActivity.this,R.style.DialogTheme)
                                     .setTitle("Felicidades")
-                                    .setMessage("Muchas gracias por ayudar a perfeccionar la aplicación")
+                                    .setMessage("Muchas gracias por ayudar a mejorar nuestro sistema")
                                     .setPositiveButton(android.R.string.ok, null) // dismisses by default
                                     .create()
                                     .show();
@@ -310,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
         mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
+        progress.dismiss();
     }
 
     @Override
@@ -339,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             new AlertDialog.Builder(MainActivity.this,R.style.DialogTheme)
                                     .setTitle("Edificio no reconocido")
                                     .setIcon(R.drawable.build_failed)
-                                    .setMessage("¿Desea ayudar a que la App crezca y aprenda seleccionando un edificio?")
+                                    .setMessage("¿Quieres ayudarnos a mejorar el sistema de reconocimiento?")
                                     .setNegativeButton(android.R.string.cancel, null) // dismisses by default
                                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
@@ -377,27 +383,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // Image capture failed, advise user
                 Log.d(TAG, "Algo raro en onActivityResult de capture image");
             }
-        } /*else if (requestCode == CAPTURE_IMAGE) {
-            if (resultCode == RESULT_OK) {
-
-                Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
-                Mat resizedTrainImg = new Mat();
-                Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
-
-                Mat descriptors = recognizer.getDescriptorsImage(resizedTrainImg);
-
-                byte[] data2 = new byte[(int) (descriptors.total() * descriptors.channels())];
-                descriptors.get(0, 0, data2);
-
-                Firebase mref = new Firebase("https://city-catched.firebaseio.com/descriptors");
-                mref.child(String.valueOf(idBuild)).child(String.valueOf(System.currentTimeMillis())).setValue(Utilities.encodeImage(data2));
-
-            } else if (resultCode == RESULT_CANCELED) {
-                super.onActivityResult(requestCode, resultCode, data);
-            } else {
-                super.onActivityResult(requestCode, resultCode, data);
-            }
-        }*/
+        }
     }
 
     private void doPhotoWithCamera(int code){
@@ -452,9 +438,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Double latitude = postSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = postSnapshot.child("longitude").getValue(Double.class);
-                    if(lastLocation!=null) { //tambien peta por aqui si no tiene localizacion
-                        if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
-                                lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
+
+                    if(lastLocation!=null) {
+                        if (40.962813 < latitude + 0.0015 && 40.962813 > latitude - 0.0015 &&
+                                -5.666044 < longitude + 0.0015 && -5.666044 > longitude - 0.0015) {
                             nearBuilding.add(postSnapshot.getKey());
                         }
                     }
