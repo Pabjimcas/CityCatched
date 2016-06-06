@@ -89,8 +89,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
                     getLocationFirebase();
-                    if (nearBuilding != null)
-                        recognizer = new ObjectRecognizer(MainActivity.this, nearBuilding);
+                    //if (nearBuilding != null)
+                    recognizer = new ObjectRecognizer(MainActivity.this, nearBuilding);
 
                     if (recognizer != null){
                         fbTakePhoto.setVisibility(View.VISIBLE);
@@ -318,8 +318,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-            Log.d(TAG, "resultCode del captureimage    " + resultCode);
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE)
             if (resultCode == RESULT_OK) {
 
                 Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
@@ -330,7 +329,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 mref.child(detectedObj).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.d("TAG", dataSnapshot.getKey());
                         String name = dataSnapshot.child("name").getValue(String.class);
                         String description = dataSnapshot.child("description").getValue(String.class);
                         String url_image = dataSnapshot.child("url_image").getValue(String.class);
@@ -375,12 +373,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     }
                 });
 
-            } else if (resultCode == RESULT_CANCELED) {
-                Log.d(TAG, "Cancelado en onActivityResult de capture image  " + data.getData());
-            } else {
-                // Image capture failed, advise user
-                Log.d(TAG, "Algo raro en onActivityResult de capture image");
-            }
+
         }
     }
 

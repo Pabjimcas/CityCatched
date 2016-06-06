@@ -28,7 +28,6 @@ public class CityDBHelper {
         newCity.put(CitySQLiteOpenHelper.KEY_ID, id);
 
         long rows = db.insert(CitySQLiteOpenHelper.DATABASE_TABLE, null, newCity);
-        Log.d(TAG,"rows insertadas: " + rows);
         return rows;
     }
 
