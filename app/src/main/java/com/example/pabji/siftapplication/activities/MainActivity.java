@@ -40,6 +40,7 @@ import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -176,6 +177,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
+        //Comprobar que lastlocation se distinto de null
+        if(lastLocation==null){
+            //Calcular de otra forma, pongo 0 para que no pete al menos
+            lastLocation = new Location("");
+            lastLocation.setLatitude(0);
+            lastLocation.setLongitude(0);
+        }
     }
 
     @Override
@@ -214,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     public void addObject() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.DialogTheme);
         final EditText input = new EditText(this);
 
         builder.setCancelable(false)
@@ -270,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             dialog.dismiss();
                             setPhotoToBuilding();
 
-                            new AlertDialog.Builder(MainActivity.this)
+                            new AlertDialog.Builder(MainActivity.this,R.style.DialogTheme)
                                     .setTitle("Felicidades")
                                     .setMessage("Muchas gracias por ayudar a perfeccionar la aplicación")
                                     .setPositiveButton(android.R.string.ok, null) // dismisses by default
@@ -328,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
                         if (name == null) {
 
-                            new AlertDialog.Builder(MainActivity.this)
+                            new AlertDialog.Builder(MainActivity.this,R.style.DialogTheme)
                                     .setTitle("Edificio no reconocido")
                                     .setIcon(R.drawable.build_failed)
                                     .setMessage("¿Desea ayudar a que la App crezca y aprenda seleccionando un edificio?")
@@ -369,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // Image capture failed, advise user
                 Log.d(TAG, "Algo raro en onActivityResult de capture image");
             }
-        } else if (requestCode == CAPTURE_IMAGE) {
+        } /*else if (requestCode == CAPTURE_IMAGE) {
             if (resultCode == RESULT_OK) {
 
                 Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
@@ -389,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 super.onActivityResult(requestCode, resultCode, data);
             }
-        }
+        }*/
     }
 
     private void doPhotoWithCamera(int code){
@@ -444,9 +452,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Double latitude = postSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = postSnapshot.child("longitude").getValue(Double.class);
-                    if (40.9628 < latitude + 0.0015 && 40.9628 > latitude - 0.0015 &&
-                            -5.6659 < longitude + 0.0015 && -5.6659 > longitude - 0.0015) {
-                        nearBuilding.add(postSnapshot.getKey());
+                    if(lastLocation!=null) { //tambien peta por aqui si no tiene localizacion
+                        if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
+                                lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
+                            nearBuilding.add(postSnapshot.getKey());
+                        }
                     }
                 }
             }

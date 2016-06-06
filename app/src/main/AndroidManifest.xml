@@ -30,7 +30,13 @@
         <activity android:name=".activities.MainActivity"
             android:screenOrientation="portrait"></activity>
         <activity android:name=".activities.SecondActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"
+            android:parentActivityName=".activities.MainActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
+        </activity>
         <activity android:name=".activities.WebActivity"></activity>
     </application>
 
