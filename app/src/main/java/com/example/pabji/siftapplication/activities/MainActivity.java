@@ -182,11 +182,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.v(TAG, "Permission is granted");
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
-        if(lastLocation==null){
-            lastLocation = new Location("");
-            lastLocation.setLatitude(0);
-            lastLocation.setLongitude(0);
-        }
     }
 
     @Override
@@ -385,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void doPhotoWithCamera(int code){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        Uri fileUri = null; // create a file to save the image
+        Uri fileUri = null;
         try {
             fileUri = getOutputMediaFileUri();
         } catch (IOException e) {
@@ -395,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if(fileUri!=null) {
             intent.putExtra("Image",actuallyPhotoFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
             startActivityForResult(intent, code);
         }
         else{
@@ -407,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return Uri.fromFile(createFile());
     }
 
-    //Create file in cache and accesible for the camera app
+
     private File createFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File tempFile = File.createTempFile(timeStamp, ".jpg", getCacheDir());
