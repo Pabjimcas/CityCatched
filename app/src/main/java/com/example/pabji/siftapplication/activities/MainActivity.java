@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -90,6 +91,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     getLocationFirebase();
                     if (nearBuilding != null)
                         recognizer = new ObjectRecognizer(MainActivity.this, nearBuilding);
+
+                    if (recognizer != null){
+                        fbTakePhoto.setVisibility(View.VISIBLE);
+                    }
                 }
                 break;
                 default: {
@@ -104,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int idBuild;
     private ItemListAdapter adapter;
     private TextView tvPlacesVisited;
+    private FloatingActionButton fbTakePhoto;
 
     @Override
     public void onResume() {
@@ -117,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        fbTakePhoto = (FloatingActionButton) findViewById(R.id.fab);
         tvPlacesVisited = (TextView) findViewById(R.id.tv_places_visites);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
@@ -157,11 +164,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        //recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         getLocationFirebase();
+
+        fbTakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doPhotoWithCamera(CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+            }
+        });
+
+
+
     }
+
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -208,17 +225,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-    public void recognizePhoto(View view) {
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doPhotoWithCamera(CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-            }
-        });
-
-    }
-
-
     public void addObject() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.DialogTheme);
         final EditText input = new EditText(this);
@@ -239,7 +245,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         LinearLayout viewDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_selector_fragment, null);
         radioGroup = (RadioGroup) viewDialog.findViewById(R.id.rg_selector);
-        //addRadioButtons(nearBuilding);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -309,8 +314,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         progress.dismiss();
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             Log.d(TAG, "resultCode del captureimage    " + resultCode);
             if (resultCode == RESULT_OK) {

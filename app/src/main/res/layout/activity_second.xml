@@ -8,7 +8,6 @@
     android:background="@color/background"
     tools:context=".activities.SecondActivity">
 
-
     <FrameLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
