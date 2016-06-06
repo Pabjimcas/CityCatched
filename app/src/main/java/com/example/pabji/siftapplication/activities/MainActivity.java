@@ -41,7 +41,6 @@ import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -289,9 +288,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                     .setPositiveButton(android.R.string.ok, null) // dismisses by default
                                     .create()
                                     .show();
-
-
-//                            doPhotoWithCamera(CAPTURE_IMAGE);
                         }
                     }
                 });

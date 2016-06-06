@@ -57,10 +57,7 @@ public class CitySQLiteOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        // Eliminamos la versión anterior de la tabla para simplificar este
-        // ejemplo.
         db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
-        // Creamos la nueva versión de la tabla   //Ver si esta bien
         db.execSQL(citySqlCreate);
     }
 }

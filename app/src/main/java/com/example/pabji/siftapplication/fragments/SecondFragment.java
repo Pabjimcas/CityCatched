@@ -76,9 +76,6 @@ public class SecondFragment extends Fragment {
         getUIControls(view);
         setSizeAppBarLayout();
         configureView();
-
-        //loading.setVisibility(View.VISIBLE);
-
     }
 
     public void setSizeAppBarLayout(){
@@ -89,7 +86,6 @@ public class SecondFragment extends Fragment {
             appBarLayout.setLayoutParams(params);
         }
     }
-
 
     private void configureView() {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
@@ -108,7 +104,6 @@ public class SecondFragment extends Fragment {
 
         if (url_image != null) {
             Picasso.with(getActivity()).load(url_image).into(ivBuild);
-//            loading.setVisibility(View.GONE);
         }
 
         fbMap.setOnClickListener(new View.OnClickListener() {
@@ -134,7 +129,6 @@ public class SecondFragment extends Fragment {
         fbMap = (FloatingActionButton) view.findViewById(R.id.fb_map);
         toolbar = (Toolbar) view.findViewById(R.id.toolbar);
         textIntro = (TextView) view.findViewById(R.id.intro);
-        //loading = (ProgressBar) view.findViewById(R.id.pb_second);
         ivBuild = (ImageView) view.findViewById(R.id.photo);
     }
 }

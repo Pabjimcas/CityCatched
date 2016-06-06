@@ -32,9 +32,6 @@ public class CityDBHelper {
         return rows;
     }
 
-   // public static void updateBuilding(){
-
- //   }
     public static void deleteBuilding(SQLiteDatabase db, String name){
 
         String where = CitySQLiteOpenHelper.DATABASE_NAME  + "=" + "'" + name + "'";
@@ -51,8 +48,6 @@ public class CityDBHelper {
         Cursor c = db.query(CitySQLiteOpenHelper.DATABASE_TABLE, campos, null, null, null, null,
                 null);
 
-        // Recorremos los resultados para mostrarlos en pantalla
-        //tvResultado.setText("");
         ArrayList<Building> buildings = new ArrayList<>();
         if (c.moveToFirst()) {
             // Recorremos el cursor hasta que no haya más registros
@@ -67,7 +62,7 @@ public class CityDBHelper {
 
                 Building building = new Building(description,name,latitud,longitud,url_image,id,intro);
                 buildings.add(building);
-              //  Log.d("Conseguimos: name: " + name, "category: " + category + "materials: " + materials + "steps: " + steps + "prize: " + prize + "uri_image: " + uri_image + "\n");
+
             } while (c.moveToNext());
         }
         c.close();
