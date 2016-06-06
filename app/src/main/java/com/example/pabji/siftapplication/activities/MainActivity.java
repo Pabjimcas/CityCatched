@@ -264,9 +264,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if (radioGroup.getCheckedRadioButtonId() == -1) {
+                        if (radioGroup.getCheckedRadioButtonId() == -1){
 
-                        } else {
+                        }else{
                             dialog.dismiss();
                             setPhotoToBuilding();
 
@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    private void setPhotoToBuilding() {
+    private void setPhotoToBuilding(){
         Mat fullSizeTrainImg = Highgui.imread(actuallyPhotoFile.getPath());
         Mat resizedTrainImg = new Mat();
         Imgproc.resize(fullSizeTrainImg, resizedTrainImg, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
@@ -343,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                     .show();
 
                         } else {
-                            CityDBHelper.insertBuilding(db, intro, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
+                            CityDBHelper.insertBuilding(db,intro, name, description, url_image, latitude, longitude, dataSnapshot.getKey());
                             Intent intent = new Intent();
                             intent.setClass(MainActivity.this, SecondActivity.class);
                             intent.putExtra("name", name);
@@ -352,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             intent.putExtra("url_image", url_image);
                             intent.putExtra("id", dataSnapshot.getKey());
                             intent.putExtra("longitude", longitude);
-                            intent.putExtra("intro", intro);
+                            intent.putExtra("intro",intro);
                             startActivity(intent);
                         }
                     }
@@ -392,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private void doPhotoWithCamera(int code) {
+    private void doPhotoWithCamera(int code){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         Uri fileUri = null; // create a file to save the image
@@ -403,16 +403,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         Log.d(TAG, "doPhotoWithCamera  " + fileUri.getEncodedPath());
 
-        if (fileUri != null) {
-            intent.putExtra("Image", actuallyPhotoFile);
+        if(fileUri!=null) {
+            intent.putExtra("Image",actuallyPhotoFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
             startActivityForResult(intent, code);
-        } else {
+        }
+        else{
             Log.d(TAG, "file URI null");
         }
     }
 
-    private Uri getOutputMediaFileUri() throws IOException {
+    private  Uri getOutputMediaFileUri() throws IOException {
         return Uri.fromFile(createFile());
     }
 
