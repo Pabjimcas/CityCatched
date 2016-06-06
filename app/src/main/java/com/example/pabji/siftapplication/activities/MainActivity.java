@@ -440,8 +440,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Double longitude = postSnapshot.child("longitude").getValue(Double.class);
 
                     if(lastLocation!=null) {
-                        if (40.962813 < latitude + 0.0015 && 40.962813 > latitude - 0.0015 &&
-                                -5.666044 < longitude + 0.0015 && -5.666044 > longitude - 0.0015) {
+                        if (lastLocation.getLatitude() < latitude + 0.0015 && lastLocation.getLatitude() > latitude - 0.0015 &&
+                                lastLocation.getLongitude() < longitude + 0.0015 && lastLocation.getLongitude() > longitude - 0.0015) {
                             nearBuilding.add(postSnapshot.getKey());
                         }
                     }
