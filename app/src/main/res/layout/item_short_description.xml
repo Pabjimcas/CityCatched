@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginRight="15sp"
+    android:layout_marginLeft="15sp"
+    android:layout_marginTop="15sp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Información"
+            android:paddingLeft="20sp"
+            android:textSize="20sp"
+            android:layout_marginBottom="10dp"/>
+        <TextView
+            android:id="@+id/tv_short_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="La casa de las consdsfdn sidfn f ssodf jasoi fjsdofi jsd iosapd jsio jfsdiop sjd fsdf sd fsjd ijsof psoid jfsdi f sdiofsj dsdoi sdjf sdiosdfj sdiofj jsf sidsjfsidof jsdfi sd sdi opsdjf sdoijfjsfdif spodjf spodijsdifjsdio jsapisjd isd jsdoif jsoisd jsiodsajoisdjfsoisdjfsodjsdosdsif ab fiobas asuof basf usodbf sdufy basf bsdf sdof uybsdf ouysdbf sdf df aid ufbsdui bds uisdb sdi ubds usipdf bsdf iusd bsdpi usb apsu ibsd puisdb isudfbspduif bsdui bsdf pisdf bsd piusdbf sdfui bdsfpi usdbf isdu bsdiuf bds iusdb isufd bsdfpiubfsdfudfsbdufispdsbidspu bdsuibdsiusbpsdifbsdfpisudfbsdfipubfdsipsusbfispudfb fipdbfsipdsubdsiusdb"/>
+
+        <TextView
+            android:id="@+id/tv_show_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver más"
+            android:layout_margin="30dp"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+

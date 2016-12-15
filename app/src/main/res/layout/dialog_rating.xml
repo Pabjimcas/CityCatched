@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minLines="2"
+        android:gravity="center"
+        android:id="@+id/tv_title_dialog"
+        android:text="¿Que puntuación le das a este edificio?"
+        />
+        <TextView
+            android:id="@+id/mark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_title_dialog"
+            android:layout_centerInParent="true"
+            android:text="3.0"
+            />
+       <RatingBar
+           android:id="@+id/rating"
+           android:layout_below="@id/mark"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_centerHorizontal="true"
+           />
+        <Button
+            android:id="@+id/btn_dialog"
+            android:layout_below="@id/rating"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enviar"/>
+
+
+
+</RelativeLayout>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "702160384971",
+    "firebase_url": "https://citycatched-bbccf.firebaseio.com",
+    "project_id": "citycatched-bbccf",
+    "storage_bucket": "citycatched-bbccf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:702160384971:android:9fa83e28565ee6d1",
+        "android_client_info": {
+          "package_name": "com.pabji.citycatched"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "702160384971-ehpc5l47g0vfqenl68c4vhplk0ku8nmp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pabji.citycatched",
+            "certificate_hash": "CE0147ABB63DF903CE09678DC1A5C01F611AFCA3"
+          }
+        },
+        {
+          "client_id": "702160384971-1d0dgvft4n8ogrhg2t2eaqn6o5bh36ve.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAh4tRujNASR2Lapb3bG0QQFSJOrDiOyt8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "702160384971-1d0dgvft4n8ogrhg2t2eaqn6o5bh36ve.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
