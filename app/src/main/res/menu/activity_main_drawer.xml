@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_main"
+            android:title="Principal" />
+
+        <item
+            android:id="@+id/nav_visites"
+            android:title="Mis visitas" />
+
+        <item
+            android:id="@+id/nav_favoritesBuilding"
+            android:title="Mis edificios favoritos" />
+
+        <item
+            android:id="@+id/nav_photos"
+            android:title="Mi galería" />
+
+        <item
+            android:id="@+id/nav_options"
+            android:title="Opciones" />
+
+    </group>
+
+
+</menu>
